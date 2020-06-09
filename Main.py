@@ -1,5 +1,6 @@
-from DominoCubano.game.GameManager import *
-from DominoCubano.ai.ChipSequence import *
+from game.GameManager import GameManager
+from ai.ChipSequence import ChipSequence
+from game.Chip import Chip
 
 fichas_para_robar = 12
 mula_mas_alta = 12

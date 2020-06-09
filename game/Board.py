@@ -1,4 +1,4 @@
-from DominoCubano.game.Row import *
+from game.Row import Row
 
 
 class Board:

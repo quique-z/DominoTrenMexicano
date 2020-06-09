@@ -1,4 +1,4 @@
-from DominoCubano.players.BasicPlayer import Player
+from players.BasicPlayer import Player
 
 
 class SimpleAIPlayer(Player):

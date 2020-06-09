@@ -1,4 +1,4 @@
-from DominoCubano.game.Chip import *
+from game.Chip import Chip
 
 
 def create_chips(highest_double):

@@ -70,6 +70,7 @@ class Player:
                                     board.set_train(self.index)
                             if len(self.chips) == 1:
                                 print(self.name + ": ¡Uno!")
+                            return
 
     def play_forced(self, board):
         for number in board.get_forced_numbers():
@@ -84,6 +85,7 @@ class Player:
                         board.remove_train(self.index)
                     if len(self.chips) == 1:
                         print(self.name + ": ¡Uno!")
+                    return
 
     def get_current_points(self):
         if self.chips is None or len(self.chips) == 0:

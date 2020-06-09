@@ -1,6 +1,6 @@
-from DominoCubano.players.BasicPlayer import *
-from DominoCubano.game.ChipFactory import *
-from DominoCubano.game.Board import *
+from players.BasicPlayer import Player
+from game.ChipFactory import *
+from game.Board import Board
 import random
 import math
 import time
