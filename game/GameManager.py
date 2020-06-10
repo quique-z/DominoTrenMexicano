@@ -16,7 +16,7 @@ class GameManager:
         self.board = None
         self.turn = 0
         self.endgame = False
-        self.endgame_counter = n_players
+        self.endgame_countdown = n_players
         players = []
         for i in range(n_players):
             players.append(Player(i))
@@ -67,7 +67,7 @@ class GameManager:
     def has_next_turn(self):
         if not self.board.can_draw():
             self.endgame = True
-            if self.endgame_counter <= 0:
+            if self.endgame_countdown <= 0:
                 return False
         return not self.players[self.previous_player_id()].is_round_winner()
 
@@ -81,11 +81,11 @@ class GameManager:
         if can_play:
             self.players[self.turn].play_any(self.board)
             if self.endgame:
-                self.endgame_counter = len(self.players)
+                self.endgame_countdown = len(self.players)
         else:
             self.board.set_train(self.turn)
             if self.endgame:
-                self.endgame_counter -= 1
+                self.endgame_countdown -= 1
 
         self.turn = self.next_player_id()
 
@@ -100,10 +100,10 @@ class GameManager:
         while self.has_next_round():
             self.init_round()
             while self.has_next_turn():
-                #print(self)
+                print(self)
                 self.next_turn()
         winner = self.end_round()
-        #print(self)
+        # print(self)
         print("{:.0f}".format(time.time() * 1000 - millis) + " ms")
         return winner.get_index()
 

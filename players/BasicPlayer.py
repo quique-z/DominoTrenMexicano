@@ -68,8 +68,7 @@ class Player:
                                     self.play_forced(board)
                                 else:
                                     board.set_train(self.index)
-                            if len(self.chips) == 1:
-                                print(self.name + ": ¡Uno!")
+                            self.end_turn(board)
                             return
 
     def play_forced(self, board):
@@ -83,8 +82,7 @@ class Player:
                     board.remove_forced(number)
                     if not board.is_forced and board.get_forced_row == self.index:
                         board.remove_train(self.index)
-                    if len(self.chips) == 1:
-                        print(self.name + ": ¡Uno!")
+                    self.end_turn(board)
                     return
 
     def get_current_points(self):
@@ -105,14 +103,20 @@ class Player:
         return self.name
 
     def is_round_winner(self):
-        #return self.has_won
-        return self.chips is None or len(self.chips) == 0
+        return self.has_won
 
     def set_name(self, name):
         self.name = name
 
     def get_index(self):
         return self.index
+
+    def end_turn(self, board):
+        if len(self.chips) == 1:
+            print("%s: ¡Uno!" % self.name)
+        elif len(self.chips) == 0:
+            if not board.is_forced or board.get_forced_row() != self.index:
+                self.has_won = True
 
     def __str__(self):
         s = ["Nombre: ", self.name, " Puntos Actuales: %s" % self.get_current_points(),

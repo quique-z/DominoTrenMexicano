@@ -7,7 +7,7 @@ class Board:
         self.center_double = center_chip_double
         self.draw_pile = chips
         self.forced = False
-        self.forced_row = 0
+        self.forced_row = -1
         self.forced_numbers = []
         self.rows = []
         for i in range(n_players):
@@ -52,6 +52,7 @@ class Board:
         self.forced_numbers.remove(number)
         if len(self.forced_numbers) == 0:
             self.forced = False
+            self.forced_row = -1
 
     def get_forced_row(self):
         return self.forced_row
