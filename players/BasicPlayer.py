@@ -105,7 +105,8 @@ class Player:
         return self.name
 
     def is_round_winner(self):
-        return self.has_won
+        #return self.has_won
+        return self.chips is None or len(self.chips) == 0
 
     def set_name(self, name):
         self.name = name

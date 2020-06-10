@@ -16,7 +16,7 @@ class GameManager:
         self.board = None
         self.turn = 0
         self.endgame = False
-        self.endgame_counter = 0
+        self.endgame_counter = n_players
         players = []
         for i in range(n_players):
             players.append(Player(i))
@@ -37,17 +37,24 @@ class GameManager:
         self.current_double -= 1
 
     def end_round(self):
-        min_score = math.inf
         winner = None
         for player in self.players:
             player.add_up_points()
-            if player.get_current_points() < min_score:
+            if player.is_round_winner():
                 winner = player
-                min_score = player.get_current_points()
-            elif player.get_current_points() == min_score:
-                if player.get_total_points() < winner.get_total_points():
+
+        if winner is None:
+            min_score = math.inf
+            for player in self.players:
+                if player.get_current_points() < min_score:
                     winner = player
+                    min_score = player.get_current_points()
+                elif player.get_current_points() == min_score:
+                    if player.get_total_points() < winner.get_total_points():
+                        winner = player
+
         self.turn = winner.get_index()
+        return winner
 
     def has_next_round(self):
         return self.current_double >= 0
@@ -60,7 +67,7 @@ class GameManager:
     def has_next_turn(self):
         if not self.board.can_draw():
             self.endgame = True
-            if self.endgame_counter >= len(self.players):
+            if self.endgame_counter <= 0:
                 return False
         return not self.players[self.previous_player_id()].is_round_winner()
 
@@ -74,11 +81,11 @@ class GameManager:
         if can_play:
             self.players[self.turn].play_any(self.board)
             if self.endgame:
-                self.endgame_counter = 0
+                self.endgame_counter = len(self.players)
         else:
             self.board.set_train(self.turn)
             if self.endgame:
-                self.endgame_counter += 1
+                self.endgame_counter -= 1
 
         self.turn = self.next_player_id()
 
@@ -93,11 +100,12 @@ class GameManager:
         while self.has_next_round():
             self.init_round()
             while self.has_next_turn():
-                print(self)
+                #print(self)
                 self.next_turn()
-        self.end_round()
-        print(self)
-        print(time.time() * 1000 - millis)
+        winner = self.end_round()
+        #print(self)
+        print("{:.0f}".format(time.time() * 1000 - millis) + " ms")
+        return winner.get_index()
 
     def __str__(self):
         s = ["El tablero está así:\n", self.board.__str__(), "\nLos jugadores están así"]
