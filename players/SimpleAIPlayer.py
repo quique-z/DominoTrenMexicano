@@ -22,7 +22,7 @@ class SimpleAIPlayer(Player):
                             board.play_chip(chip_to_play, open_number, row.get_index())
                             board.remove_train(self.index)
                             print(chip_to_play)
-                            if chip_to_play.is_double():
+                            if chip_to_play.double():
                                 board.set_forced(row.get_index(), chip_to_play.get_side_a())
                                 can_play = self.can_play_number(chip_to_play.get_side_a())
                                 if not can_play and board.can_draw():
