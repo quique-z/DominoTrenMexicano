@@ -1,4 +1,5 @@
 from players.BasicPlayer import Player
+from players.SimpleAIPlayer import SimpleAIPlayer
 from game.ChipFactory import *
 from game.Board import Board
 import random
@@ -8,7 +9,7 @@ import time
 
 class GameManager:
 
-    def __init__(self, n_players, n_chips_per_player, highest_double, initial_double):
+    def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py):
         self.chips = []
         self.n_chips_per_player = n_chips_per_player
         self.highest_double = highest_double
@@ -16,10 +17,13 @@ class GameManager:
         self.board = None
         self.turn = 0
         self.endgame = False
-        self.endgame_countdown = n_players
+        self.n_players = basic_py + simple_py
+        self.endgame_countdown = self.n_players
         players = []
-        for i in range(n_players):
+        for i in range(basic_py):
             players.append(Player(i))
+        for i in range(basic_py, self.n_players):
+            players.append(SimpleAIPlayer(i))
         self.players = players
 
     def init_round(self):
@@ -79,7 +83,7 @@ class GameManager:
             can_play = self.players[self.turn].can_play_any(self.board)
 
         if can_play:
-            self.players[self.turn].play_any(self.board)
+            self.players[self.turn].play(self.board)
             if self.endgame:
                 self.endgame_countdown = len(self.players)
         else:
@@ -103,7 +107,7 @@ class GameManager:
                 print(self)
                 self.next_turn()
         winner = self.end_round()
-        # print(self)
+        print(self)
         print("{:.0f}".format(time.time() * 1000 - millis) + " ms")
         return winner.get_index()
 

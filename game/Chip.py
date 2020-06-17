@@ -17,14 +17,17 @@ class Chip:
     def is_double(self):
         return self.get_side_a() == self.get_side_b()
 
-    def __contains__(self, n):
-        return self.numbers.__contains__(n)
-
     def get_value(self):
         if self.numbers[0] == 0 and self.numbers[1] == 0:
             return 50
         else:
             return self.numbers[0] + self.numbers[1]
+
+    def __contains__(self, n):
+        return self.numbers.__contains__(n)
+
+    def __eq__(self, other):
+        return self.get_side_a() == other.get_side_a() and self.get_side_b() == other.get_side_b()
 
     def __str__(self):
         return "[%s|%s]" % (self.numbers[0], self.numbers[1])

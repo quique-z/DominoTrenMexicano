@@ -16,16 +16,17 @@ class Player:
         print(self.name + " roba: " + chip.__str__())
 
     def can_play_any(self, board):
+        if self.chips is None or len(self.chips) == 0:
+            return False
+
         if board.is_forced():
             return self.can_play_forced(board)
 
         for row in board.get_rows():
             if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
-                for open_positions in row.get_open_positions():
-                    for chip in self.chips:
-                        if chip.__contains__(open_positions):
-                            return True
-
+                for open_position in row.get_open_positions():
+                    if self.can_play_number(open_position):
+                        return True
         return False
 
     def can_play_number(self, number):
@@ -42,12 +43,14 @@ class Player:
                 return True
         return False
 
-    def play_any(self, board):
+    def play(self, board):
         print(self.name + " juega: ")
         if board.is_forced():
             self.play_forced(board)
-            return
+        else:
+            self.play_any(board)
 
+    def play_any(self, board):
         for row in board.get_rows():
             if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
                 for open_number in row.get_open_positions():
@@ -58,14 +61,14 @@ class Player:
                             board.play_chip(chip_to_play, open_number, row.get_index())
                             board.remove_train(self.index)
                             print(chip_to_play)
-                            if chip_to_play.double():
+                            if chip_to_play.is_double():
                                 board.set_forced(row.get_index(), chip_to_play.get_side_a())
                                 can_play = self.can_play_number(chip_to_play.get_side_a())
                                 if not can_play and board.can_draw():
                                     self.add_chip(board.draw())
                                     can_play = self.can_play_number(chip_to_play.get_side_a())
                                 if can_play:
-                                    self.play_forced(board)
+                                    self.play(board)
                                 else:
                                     board.set_train(self.index)
                             self.end_turn(board)

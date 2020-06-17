@@ -35,7 +35,7 @@ class Board:
         return self.rows[index].has_train()
 
     def play_chip(self, chip_to_play, side_to_play, row):
-        if chip_to_play.double():
+        if chip_to_play.is_double():
             self.rows[row].add_open_positions(side_to_play)
         else:
             self.rows[row].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
