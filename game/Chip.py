@@ -31,3 +31,6 @@ class Chip:
 
     def __str__(self):
         return "[%s|%s]" % (self.numbers[0], self.numbers[1])
+
+    def __hash__(self):
+        return hash(hash(self.numbers[0]) + hash(self.numbers[1]))
