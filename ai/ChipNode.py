@@ -49,10 +49,14 @@ class ChipNode:
         if self.next is None:
             return None
         if self.is_double() and self.next2 is not None:
-            if self.next2.get_chip.get_value() > self.next.get_chip.get_value():
-                return [self.next, self.next2.next]
+            if self.next2.get_next_piece_value() > self.next.get_next_piece_value():
+                if self.next2.next is not None:
+                    return [self.next, self.next2.next]
             else:
-                return [self.next2, self.next.next]
+                if self.next.next is None:
+                    return [self.next2]
+                else:
+                    return [self.next2, self.next.next]
         return [self.next]
 
     def get_next_piece(self):
@@ -60,9 +64,9 @@ class ChipNode:
         if self.is_double():
             if self.next is not None:
                 if self.next2 is not None and self.next2.get_next_piece_value() > self.next.get_next_piece_value():
-                    next_chip.append(self.next2.get_next_piece_value())
+                    next_chip.append(self.next2.get_chip())
                 else:
-                    next_chip.append(self.next.get_next_piece_value())
+                    next_chip.append(self.next.get_chip())
         return next_chip
 
     def __contains__(self, value):

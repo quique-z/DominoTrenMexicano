@@ -5,6 +5,27 @@ from game.ChipFactory import *
 import random
 import time
 
+chips = []
+
+chips.append(Chip(3,3))
+chips.append(Chip(3,5))
+chips.append(Chip(3,7))
+chips.append(Chip(5,8))
+chips.append(Chip(8,8))
+chips.append(Chip(8,10))
+chips.append(Chip(7,12))
+
+cs = generate_sequence([3], chips, 0)
+print(cs)
+
+while cs.has_chip_to_play():
+    print("Turno")
+    ctp = cs.get_best_chip_to_play()
+    for i in ctp:
+        print(i)
+    print(cs)
+
+"""
 fichas_para_robar = 12
 mula_mas_alta = 12
 mula_inicial = 12
@@ -30,7 +51,6 @@ for i in ctp:
     print(i)
 print(cs)
 
-"""
 for j in range(5, 25):
     total_time = 0
     max_time = -math.inf
