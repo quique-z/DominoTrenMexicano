@@ -50,8 +50,6 @@ class Player:
         print(self.name + " juega: ")
         if board.is_forced():
             self.play_forced(board)
-        elif board.get_row(self.index).can_play_many():
-            self.play_first(board)
         else:
             self.play_any(board)
 

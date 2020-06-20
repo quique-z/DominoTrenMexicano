@@ -61,9 +61,7 @@ class ChipNode:
                 else:
                     return [self.next.next, self.next2]
             else:
-                if self.next2.next is None:
-                    return [self.next]
-                else:
+                if self.next2.next is not None:
                     return [self.next2.next, self.next]
 
         return [self.next]
