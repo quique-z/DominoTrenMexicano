@@ -7,17 +7,16 @@ import time
 
 chips = []
 
-chips.append(Chip(3,3))
-chips.append(Chip(3,5))
-chips.append(Chip(3,7))
-chips.append(Chip(5,8))
-chips.append(Chip(8,8))
-chips.append(Chip(8,10))
-chips.append(Chip(7,12))
+chips.append(Chip(3,0))
+chips.append(Chip(0,1))
+chips.append(Chip(1,2))
+chips.append(Chip(2,0))
+chips.append(Chip(0,12))
+chips.append(Chip(12,3))
 
-cs = generate_sequence([3], chips, 0)
+cs = generate_sequence([3], chips, 5, 0.99)
 print(cs)
-
+"""
 while cs.has_chip_to_play():
     print("Turno")
     ctp = cs.get_best_chip_to_play()
@@ -25,7 +24,7 @@ while cs.has_chip_to_play():
         print(i)
     print(cs)
 
-"""
+
 fichas_para_robar = 12
 mula_mas_alta = 12
 mula_inicial = 12
