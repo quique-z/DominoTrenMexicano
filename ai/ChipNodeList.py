@@ -19,10 +19,28 @@ class ChipNodeList:
                 max_value = cn.get_next_piece_value()
                 best_chip_node = cn
         self.remove_node(best_chip_node)
-        return best_chip_node.get_next_piece()
+        return best_chip_node
+
+    def get_best_numbered_chip_to_play(self, numbers):
+        max_value = -math.inf
+        best_chip_node = None
+        for cn in self.chip_nodes:
+            for number in numbers:
+                if cn.get_side_to_play() == number and cn.get_next_piece_value() > max_value:
+                    max_value = cn.get_next_piece_value()
+                    best_chip_node = cn
+        self.remove_node(best_chip_node)
+        return best_chip_node
 
     def has_chip_to_play(self):
         return len(self.chip_nodes) > 0
+
+    def has_number_to_play_immediately(self, numbers):
+        for cn in self.chip_nodes:
+            for number in numbers:
+                if cn.get_side_to_play() == number:
+                    return True
+        return False
 
     def remove_node(self, chip_node):
         self.chip_nodes.remove(chip_node)

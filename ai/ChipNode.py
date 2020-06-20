@@ -48,15 +48,24 @@ class ChipNode:
     def get_tail(self):
         if self.next is None:
             return None
-        if self.is_double() and self.next2 is not None:
-            if self.next2.get_next_piece_value() > self.next.get_next_piece_value():
-                if self.next2.next is not None:
-                    return [self.next, self.next2.next]
-            else:
+
+        if self.is_double():
+            if self.next2 is None:
+                if self.next.next is None:
+                    return None
+                else:
+                    return [self.next.next]
+            elif self.next.get_next_piece_value() > self.next2.get_next_piece_value():
                 if self.next.next is None:
                     return [self.next2]
                 else:
-                    return [self.next2, self.next.next]
+                    return [self.next.next, self.next2]
+            else:
+                if self.next2.next is None:
+                    return [self.next]
+                else:
+                    return [self.next2.next, self.next]
+
         return [self.next]
 
     def get_next_piece(self):

@@ -35,7 +35,7 @@ class GameManager:
             chips = []
             for i in range(self.n_chips_per_player):
                 chips.append(self.chips.pop())
-            player.init_turn(chips)
+            player.init_round(chips)
 
         self.board = Board(len(self.players), self.current_double, self.chips)
         self.current_double -= 1

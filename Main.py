@@ -71,7 +71,7 @@ mula_mas_alta = 12
 mula_inicial = 12
 n_jugadores = 4
 winners = [0, 0, 0, 0]
-for i in range(100):
+for i in range(1):
     game_manager = GameManager(fichas_para_robar, mula_mas_alta, mula_inicial, 0, 4)
     game_manager.name_players("Pety", "Anel", "Abuela", "Titi")
     winners[game_manager.play_ai_game()] += 1

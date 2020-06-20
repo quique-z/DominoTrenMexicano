@@ -4,7 +4,7 @@ class Row:
         self.index = index
         self.open_positions = [center_double]
         self.train = False
-        self.has_chip_been_played = True
+        self.is_free = True
 
     def set_train(self):
         self.train = True
@@ -20,7 +20,7 @@ class Row:
 
     def add_open_positions(self, open_positions):
         self.open_positions.append(open_positions)
-        self.has_chip_been_played = False
+        self.is_free = False
 
     def remove_open_positions(self, open_positions):
         self.open_positions.remove(open_positions)
@@ -28,13 +28,13 @@ class Row:
     def swap_open_positions(self, remove, open_positions):
         self.open_positions.remove(remove)
         self.open_positions.append(open_positions)
-        self.has_chip_been_played = False
+        self.is_free = False
 
     def get_index(self):
         return self.index
 
-    def is_free(self):
-        return self.has_chip_been_played
+    def can_play_many(self):
+        return self.is_free
 
     def __str__(self):
         s = []

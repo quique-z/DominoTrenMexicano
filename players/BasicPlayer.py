@@ -7,7 +7,7 @@ class Player:
         self.total_points = 0
         self.has_won = False
 
-    def init_turn(self, chips):
+    def init_round(self, chips):
         self.chips = chips
         self.has_won = False
 
@@ -17,6 +17,9 @@ class Player:
 
     def can_play_any(self, board):
         if self.chips is None or len(self.chips) == 0:
+            if board.get_forced_row() != self.index:
+                self.has_won = True
+                print("Gané de manera chistosa")
             return False
 
         if board.is_forced():
@@ -47,7 +50,7 @@ class Player:
         print(self.name + " juega: ")
         if board.is_forced():
             self.play_forced(board)
-        elif board.get_row(self.index).is_free():
+        elif board.get_row(self.index).can_play_many():
             self.play_first(board)
         else:
             self.play_any(board)
@@ -120,6 +123,7 @@ class Player:
         if len(self.chips) == 1:
             print("%s: ¡Uno!" % self.name)
         elif len(self.chips) == 0:
+            # TODO: puedes ganar si tu ultima ficha es mula y otro jugador la desbloquea
             if not board.is_forced or board.get_forced_row() != self.index:
                 self.has_won = True
 
