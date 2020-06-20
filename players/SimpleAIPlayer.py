@@ -7,25 +7,21 @@ class SimpleAIPlayer(Player):
     def __init__(self, index):
         super().__init__(index)
         self.chip_sequence = None
-        self.heuristic_value_per_chip = 12.55
+        self.heuristic_value_per_chip = 7
+        self.front_loaded_index = 0.99
 
     def play_forced(self, board):
         if board.get_forced_row() == self.index:
-            super().play_forced(board)
-            return
+            self.play_forced_self(board)
+        else:
+            self.play_forced_elsewhere(board)
 
+    def play_forced_elsewhere(self, board):
         best_chip = None
         best_number = None
-        chips_not_in_sequence = []
-
-        if self.chip_sequence is None:
-            chips_not_in_sequence = self.chips
-        else:
-            for chip in self.chips:
-                if not self.chip_sequence.__contains__(chip):
-                    chips_not_in_sequence.append(chip)
-
         max_value = -math.inf
+        chips_not_in_sequence = list(set(self.chips) - set(self.chip_sequence.get_chipset()))
+
         for chip in chips_not_in_sequence:
             for number in board.get_forced_numbers():
                 if chip.__contains__(number) and chip.get_value() > max_value:
@@ -43,10 +39,10 @@ class SimpleAIPlayer(Player):
                         new_chips = self.chips.copy()
                         new_chips.remove(chip)
                         new_sequence = generate_sequence(
-                            open_positions, new_chips, self.heuristic_value_per_chip, 0)
-                        loss = 0
+                            open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                        loss = current_value
                         if new_sequence is not None:
-                            loss = current_value - new_sequence.get_value()
+                            loss -= new_sequence.get_value()
                         if loss < min_loss:
                             min_loss = loss
                             best_chip = chip
@@ -56,9 +52,21 @@ class SimpleAIPlayer(Player):
         board.remove_forced(best_number)
         self.chips.remove(best_chip)
 
+    def play_forced_self(self, board):
+        super().play_forced(board)
+
+    def play_first(self, board):
+        super().play_first(board)
+
+    def play_any(self, board):
+        super().play_any(board)
+
     def update_sequence(self, board):
         self.chip_sequence = generate_sequence(
-            board.get_row(self.index).get_open_positions(), self.chips, self.heuristic_value_per_chip, 0)
+            board.get_row(self.index).get_open_positions(),
+            self.chips,
+            self.heuristic_value_per_chip,
+            self.front_loaded_index)
 
     def play(self, board):
         self.update_sequence(board)

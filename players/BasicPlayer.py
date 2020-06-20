@@ -47,6 +47,8 @@ class Player:
         print(self.name + " juega: ")
         if board.is_forced():
             self.play_forced(board)
+        elif board.get_row(self.index).is_free():
+            self.play_first(board)
         else:
             self.play_any(board)
 
@@ -120,6 +122,9 @@ class Player:
         elif len(self.chips) == 0:
             if not board.is_forced or board.get_forced_row() != self.index:
                 self.has_won = True
+
+    def play_first(self, board):
+        self.play_any(board)
 
     def __str__(self):
         s = ["Nombre: ", self.name, " Puntos Actuales: %s" % self.get_current_points(),
