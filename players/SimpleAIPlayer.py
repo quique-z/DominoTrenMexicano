@@ -16,7 +16,6 @@ class SimpleAIPlayer(Player):
             self.play_forced_self(board)
         else:
             self.play_forced_elsewhere(board)
-        self.needs_to_update_sequence = True
 
     def play_forced_elsewhere(self, board):
         best_chip = None
@@ -102,6 +101,7 @@ class SimpleAIPlayer(Player):
                 if board.can_draw():
                     chip = board.draw()
                     self.chips.append(chip)
+                    print("%s roba ficha %s" % (self.name, chip.__str__()))
                     for number in board.get_forced_numbers():
                         if chip.__contains__(number):
                             board.play_chip(chip, number, self.index)
@@ -129,10 +129,12 @@ class SimpleAIPlayer(Player):
             self.update_sequence(board)
         if board.is_forced():
             self.play_forced(board)
+            self.needs_to_update_sequence = True
         elif board.get_row(self.index).can_play_many() and not self.can_play_cheaply_elsewhere(board):
             self.play_first(board)
         else:
             self.play_any(board)
+            self.needs_to_update_sequence = True
 
     def can_play_cheaply_elsewhere(self, board):
         chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
@@ -151,15 +153,16 @@ class SimpleAIPlayer(Player):
             if row.get_index() != self.index and row.has_train():
                 for number in row.get_open_positions():
                     for chip in self.chip_node_list.get_chipset():
-                        new_chips = self.chips.copy()
-                        new_chips.remove(chip)
-                        new_sequence = generate_sequence(
-                            my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
-                        new_excess_value = self.get_current_points() - chip.get_value()
-                        if new_sequence is not None:
-                            new_excess_value -= new_sequence.get_value()
-                        if new_excess_value <= current_excess_value:
-                            return True
+                        if chip.__contains__(number):
+                            new_chips = self.chips.copy()
+                            new_chips.remove(chip)
+                            new_sequence = generate_sequence(
+                                my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                            new_excess_value = self.get_current_points() - chip.get_value()
+                            if new_sequence is not None:
+                                new_excess_value -= new_sequence.get_value()
+                            if new_excess_value <= current_excess_value:
+                                return True
 
         return False
 
