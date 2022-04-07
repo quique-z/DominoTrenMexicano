@@ -21,12 +21,19 @@ class ChipNodeList:
         self.remove_node(best_chip_node)
         return best_chip_node
 
+    def has_number_to_play_immediately(self, numbers):
+        for cn in self.chip_nodes:
+            for number in numbers:
+                if cn.get_chip_side_to_play() == number:
+                    return True
+        return False
+
     def get_best_numbered_chip_to_play(self, numbers):
         max_value = -math.inf
         best_chip_node = None
         for cn in self.chip_nodes:
             for number in numbers:
-                if cn.get_side_to_play() == number and cn.get_next_piece_value() > max_value:
+                if cn.get_chip_side_to_play() == number and cn.get_next_piece_value() > max_value:
                     max_value = cn.get_next_piece_value()
                     best_chip_node = cn
         self.remove_node(best_chip_node)
@@ -34,13 +41,6 @@ class ChipNodeList:
 
     def has_chip_to_play(self):
         return len(self.chip_nodes) > 0
-
-    def has_number_to_play_immediately(self, numbers):
-        for cn in self.chip_nodes:
-            for number in numbers:
-                if cn.get_side_to_play() == number:
-                    return True
-        return False
 
     def remove_node(self, chip_node):
         self.chip_nodes.remove(chip_node)
@@ -54,10 +54,17 @@ class ChipNodeList:
             chipset.extend(cn.get_chipset())
         return chipset
 
-    def get_value(self):
+    def get_chipset_value(self):
         value = 0
         for cn in self.chip_nodes:
-            value += cn.get_value()
+            for chip in cn.get_chipset():
+                value += chip.get_value()
+        return value
+
+    def get_chipset_weighted_value(self):
+        value = 0
+        for cn in self.chip_nodes:
+            value += cn.get_chain_value()
         return value
 
     def __len__(self):
@@ -65,6 +72,6 @@ class ChipNodeList:
 
     def __str__(self):
         s = []
-        for i in self.chip_nodes:
-            s.append(i.__str__())
+        for cn in self.chip_nodes:
+            s.append(cn.__str__())
         return ''.join(s)

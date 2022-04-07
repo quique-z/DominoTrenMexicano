@@ -9,10 +9,12 @@ class Chip:
     def get_side_b(self):
         return self.numbers[1]
 
-    def get_other_side(self, a):
-        if self.numbers[0] == a:
+    def get_other_side(self, n):
+        if self.numbers[0] == n:
             return self.numbers[1]
-        return self.numbers[0]
+        if self.numbers[1] == n:
+            return self.numbers[0]
+        raise Exception("This chip does not contain number %s" % n)
 
     def is_double(self):
         return self.get_side_a() == self.get_side_b()

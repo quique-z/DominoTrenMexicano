@@ -17,6 +17,7 @@ class GameManager:
         self.board = None
         self.turn = 0
         self.endgame = False
+        self.global_winner = []
         self.n_players = basic_py + simple_py
         self.endgame_countdown = self.n_players
         players = []
@@ -27,8 +28,7 @@ class GameManager:
         self.players = players
 
     def init_round(self):
-        self.end_round()
-        self.chips = create_chips_without_double(self.highest_double, self.current_double)
+        self.chips = create_chips(self.highest_double, self.current_double)
         random.shuffle(self.chips)
 
         for player in self.players:
@@ -41,32 +41,30 @@ class GameManager:
         self.current_double -= 1
 
     def end_round(self):
-        winner = None
+        global_best_score = math.inf
+        round_winner = None
+
         for player in self.players:
             player.add_up_points()
             if player.is_round_winner():
-                winner = player
+                round_winner = player
+            if player.get_total_points() < global_best_score:
+                global_best_score = player.get_total_points()
+                self.global_winner = [player]
+            elif player.get_total_points() == global_best_score:
+                self.global_winner.append(player)
 
-        if winner is None:
+        if round_winner is None:
             min_score = math.inf
             for player in self.players:
                 if player.get_current_points() < min_score:
-                    winner = player
+                    round_winner = player
                     min_score = player.get_current_points()
                 elif player.get_current_points() == min_score:
-                    if player.get_total_points() < winner.get_total_points():
-                        winner = player
+                    if player.get_total_points() < round_winner.get_total_points():
+                        round_winner = player
 
-        self.turn = winner.get_index()
-        return winner
-
-    def has_next_round(self):
-        return self.current_double >= 0
-
-    def name_players(self, *names):
-        if len(names) == len(self.players):
-            for i in range(len(names)):
-                self.players[i].set_name(names[i])
+        self.turn = round_winner.get_index()
 
     def has_next_turn(self):
         if not self.board.can_draw():
@@ -93,6 +91,14 @@ class GameManager:
 
         self.turn = self.next_player_id()
 
+    def has_next_round(self):
+        return self.current_double >= 0
+
+    def name_players(self, *names):
+        if len(names) == len(self.players):
+            for i in range(len(names)):
+                self.players[i].set_name(names[i])
+
     def previous_player_id(self):
         return (self.turn - 1) % len(self.players)
 
@@ -101,31 +107,29 @@ class GameManager:
 
     def play_ai_game(self):
         millis = time.time() * 1000
+
         while self.has_next_round():
             self.init_round()
             while self.has_next_turn():
                 print(self)
                 self.next_turn()
-        winner = self.end_round()
+            self.end_round()
+
         print(self)
         print("{:.0f}".format(time.time() * 1000 - millis) + " ms")
-        return winner.get_index()
+
+        winners = []
+        for player in self.global_winner:
+            winners.append(player.get_index())
+        return winners
 
     def __str__(self):
-        s = ["El tablero está así:\n", self.board.__str__(), "\nLos jugadores están así"]
-        winner = ""
-        min_points = math.inf
+        s = ["The board looks like this:\n%s\nPlayers:" % self.board.__str__()]
         for player in self.players:
-            s.append("\n")
-            s.append(player.__str__())
-            if player.get_total_points() == min_points:
-                winner = winner + ", " + player.get_name()
-            elif player.get_total_points() < min_points:
-                min_points = player.get_total_points()
-                winner = player.get_name()
-        s.append("\nEs turno de ")
-        s.append(self.players[self.turn].get_name())
-        s.append("\nVa ganando: ")
-        s.append(winner)
+            s.append("\n%s" % player.__str__())
+        s.append("\nPlayer's turn: %s" % self.players[self.turn].get_name())
+        s.append("\nPlayer(s) in the lead: ")
+        for player in self.global_winner:
+            s.append("\n%s" % player.get_name())
         s.append("\n\n\n")
         return ''.join(s)
