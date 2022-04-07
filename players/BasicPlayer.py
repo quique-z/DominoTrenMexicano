@@ -6,7 +6,7 @@ class Player:
 
     def __init__(self, index, name=None):
         if name is None:
-            self.name = index.__str__
+            self.name = index.__str__()
         else:
             self.name = name
         self.index = index

@@ -6,6 +6,7 @@ import random
 import time
 
 
+
 fichas_para_robar = 12
 mula_mas_alta = 12
 mula_inicial = 12
@@ -23,7 +24,6 @@ print(historic_winners)
 
 
 """
-
 pool = create_chips(12)
 random.shuffle(pool)
 chips = []
@@ -62,6 +62,5 @@ for j in range(5, 25):
         if run_time < min_time:
             min_time = run_time
     print("Tiempo promedio en ordenar %s fichas es: " % j + "{:.0f}".format(total_time/100) + " ms. Max y min son %s ms y %s ms" % (max_time, min_time))
-
 
 """

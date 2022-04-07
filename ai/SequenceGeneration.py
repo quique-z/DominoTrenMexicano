@@ -3,17 +3,30 @@ from ai.ChipNode import ChipNode
 from ai.ChipNodeList import ChipNodeList
 
 
-# TODO: Can improve this first one by checking all the positions for the best sequence first, not taking only the first sequence at random.
-
 def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_loaded_index=1):
     chip_node_list = ChipNodeList()
     new_chips = chips.copy()
+    ready_to_exit = False
 
-    for open_position in open_positions:
-        sequence = generate_sequence_recursive(open_position, new_chips, heuristic_value_per_chip, front_loaded_index)
-        if sequence is not None:
-            chip_node_list.add(sequence)
-            new_chips = list(set(new_chips) - set(sequence.get_chipset()))
+    while not ready_to_exit:
+        ready_to_exit = True
+        best_sequence = None
+        best_open_position = None
+        best_score = -math.inf
+
+        for open_position in open_positions:
+            sequence = generate_sequence_recursive(open_position, new_chips, heuristic_value_per_chip, front_loaded_index)
+            if sequence is not None and sequence.get_chain_value() > best_score:
+                best_sequence = sequence
+                best_open_position = open_position
+                best_score = sequence.get_chain_value()
+                ready_to_exit = False
+
+        if best_sequence is not None:
+            chip_node_list.add(best_sequence)
+            new_chips = list(set(new_chips) - set(best_sequence.get_chipset()))
+            open_positions.remove(best_open_position)
+
     return chip_node_list
 
 
@@ -37,7 +50,6 @@ def generate_sequence_recursive(open_position, chips, heuristic_value_per_chip=0
             if sequence is not None:
                 new_value += sequence.get_chain_value() * front_loaded_index
                 if chip.is_double():
-                    # Use set arithmetic for speed
                     new_chips = list(set(new_chips) - set(sequence.get_chipset()))
                     sequence2 = generate_sequence_recursive(
                         chip.get_side_a(), new_chips, heuristic_value_per_chip, front_loaded_index)

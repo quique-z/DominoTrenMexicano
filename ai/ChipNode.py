@@ -12,7 +12,7 @@ class ChipNode:
     def add_next_node(self, chip_node):
         if chip_node is None:
             return
-        self.value += chip_node.get_chip_value()
+        self.value += chip_node.get_chain_value()
         self.chipset.extend(chip_node.get_chipset())
 
         if self.double and self.next is not None:
