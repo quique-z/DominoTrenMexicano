@@ -10,20 +10,20 @@ class Chip:
         return self.numbers[1]
 
     def get_other_side(self, n):
-        if self.numbers[0] == n:
-            return self.numbers[1]
-        if self.numbers[1] == n:
-            return self.numbers[0]
+        if self.get_side_a() == n:
+            return self.get_side_b()
+        if self.get_side_b() == n:
+            return self.get_side_a()
         raise Exception("This chip does not contain number %s" % n)
 
     def is_double(self):
         return self.get_side_a() == self.get_side_b()
 
     def get_value(self):
-        if self.numbers[0] == 0 and self.numbers[1] == 0:
+        if self.get_side_a() == 0 and self.get_side_b() == 0:
             return 50
         else:
-            return self.numbers[0] + self.numbers[1]
+            return self.get_side_a() + self.get_side_b()
 
     def __contains__(self, n):
         return self.numbers.__contains__(n)
@@ -32,7 +32,7 @@ class Chip:
         return self.get_side_a() == other.get_side_a() and self.get_side_b() == other.get_side_b()
 
     def __str__(self):
-        return "[%s|%s]" % (self.numbers[0], self.numbers[1])
+        return "[%s|%s]" % (self.get_side_a(), self.get_side_b())
 
     def __hash__(self):
-        return hash(hash(self.numbers[0]) + hash(self.numbers[1]))
+        return hash(hash(self.get_side_a()) + hash(self.get_side_b()))
