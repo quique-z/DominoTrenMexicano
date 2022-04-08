@@ -9,7 +9,10 @@ import time
 
 class GameManager:
 
-    def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py):
+    def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py, player_names=[]):
+        if len(player_names) == 0:
+            for i in basic_py + simple_py:
+                player_names.append(i.__str__())
         self.chips = []
         self.n_chips_per_player = n_chips_per_player
         self.highest_double = highest_double
@@ -20,11 +23,12 @@ class GameManager:
         self.global_winner = []
         self.n_players = basic_py + simple_py
         self.endgame_countdown = self.n_players
+        self.player_names = player_names
         players = []
         for i in range(basic_py):
-            players.append(Player(i))
+            players.append(Player(i, player_names[i]))
         for i in range(basic_py, self.n_players):
-            players.append(SimpleAIPlayer(i))
+            players.append(SimpleAIPlayer(i, player_names[i]))
         self.players = players
 
     def init_round(self):
@@ -37,7 +41,7 @@ class GameManager:
                 chips.append(self.chips.pop())
             player.init_round(chips)
 
-        self.board = Board(len(self.players), self.current_double, self.chips)
+        self.board = Board(len(self.players), self.current_double, self.chips, self.player_names)
         self.current_double -= 1
 
     def end_round(self):
@@ -67,10 +71,18 @@ class GameManager:
         self.turn = round_winner.get_index()
 
     def has_next_turn(self):
+        # Breaks stalemates where there are no more moves to make.
         if not self.board.can_draw():
             self.endgame = True
             if self.endgame_countdown <= 0:
                 return False
+            # Rare condition where a player is eligible to win but hasn't because the board used to be forced due to their fault.
+            # Can only happen when there are no chips to draw and the board is no longer forced.
+            if not self.board.is_forced():
+                for player in self.players:
+                    if player.is_eligible_to_win():
+                        player.declare_round_winner()
+
         return not self.players[self.previous_player_id()].is_round_winner()
 
     def next_turn(self):
@@ -93,11 +105,6 @@ class GameManager:
 
     def has_next_round(self):
         return self.current_double >= 0
-
-    def name_players(self, *names):
-        if len(names) == len(self.players):
-            for i in range(len(names)):
-                self.players[i].set_name(names[i])
 
     def previous_player_id(self):
         return (self.turn - 1) % len(self.players)

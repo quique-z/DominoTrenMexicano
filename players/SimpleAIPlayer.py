@@ -96,7 +96,7 @@ class SimpleAIPlayer(Player):
                 print("%s juega ficha %s" % (self.name, chip.__str__()))
                 if chip.is_double() and len(chips) == 1:
                     forced_counter += 1
-                    board.set_forced(self.index, chip.get_side_a())
+                    board.set_forced(self.index, chip.get_side_a(), self.index)
                 board.play_chip(chip, cn.get_chip_side_to_play(), self.index)
                 self.chips.remove(chip)
 
@@ -175,10 +175,10 @@ class SimpleAIPlayer(Player):
                         self.play_chips(board, [drawn_chip], side_to_play, self.index)
                     else:
                         board.set_train(self.index)
-                        board.set_forced(self.index, side_to_play)
+                        board.set_forced(self.index, side_to_play, self.index)
                 else:
                     board.set_train(self.index)
-                    board.set_forced(self.index, chip.get_chip_side_to_play())
+                    board.set_forced(self.index, chip.get_chip_side_to_play(), self.index)
             if board.get_forced_row() != self.index:
                 board.remove_train(self.index)
         else:

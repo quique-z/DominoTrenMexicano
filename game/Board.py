@@ -3,17 +3,17 @@ from game.Row import Row
 
 class Board:
 
-    def __init__(self, n_players, center_chip_double, chips, player_names=None):
-        if player_names is None:
+    def __init__(self, n_players, center_chip_double, chips, player_names=[]):
+        self.player_names = []
+        if len(player_names) != n_players:
             player_names = range(n_players)
-        elif len(player_names != n_players):
-            raise Exception("Number of players and list of player names are not the same size.")
 
         self.center_double = center_chip_double
         self.draw_pile = chips
         self.forced = False
         self.forced_row = -1
         self.forced_numbers = []
+        self.forced_culprit = -1
         self.rows = []
         for i in range(n_players):
             self.rows.append(Row(i, center_chip_double, player_names[i]))
@@ -24,16 +24,18 @@ class Board:
         else:
             self.rows[row].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
 
-    def set_forced(self, row, numbers):
+    def set_forced(self, row, numbers, culprit):
         self.forced = True
         self.forced_row = row
         self.forced_numbers.append(numbers)
+        self.forced_culprit = culprit
 
     def remove_forced(self, number):
         self.forced_numbers.remove(number)
         if len(self.forced_numbers) == 0:
             self.forced = False
             self.forced_row = -1
+            self.forced_culprit = -1
 
     def is_forced(self):
         return self.forced
@@ -43,6 +45,9 @@ class Board:
 
     def get_forced_numbers(self):
         return self.forced_numbers
+
+    def get_forced_culprit(self):
+        return self.forced_culprit
 
     def get_row(self, i):
         return self.rows[i]

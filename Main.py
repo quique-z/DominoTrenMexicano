@@ -14,8 +14,7 @@ n_jugadores = 4
 historic_winners = [0] * n_jugadores
 
 for i in range(10):
-    game_manager = GameManager(fichas_para_robar, mula_mas_alta, mula_inicial, n_jugadores, 0)
-    game_manager.name_players("Pety", "Anel", "Abuela", "Titi")
+    game_manager = GameManager(fichas_para_robar, mula_mas_alta, mula_inicial, n_jugadores, 0, ["Pety", "Anel", "Abuela", "Titi"])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1

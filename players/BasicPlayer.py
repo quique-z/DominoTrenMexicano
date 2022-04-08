@@ -13,21 +13,24 @@ class Player:
         self.chips = None
         self.total_points = 0
         self.has_won = False
+        self.eligible_to_win = False
 
     def init_round(self, chips):
         self.chips = chips
         self.has_won = False
+        self.eligible_to_win = False
 
     def end_turn(self, board):
         if len(self.chips) == 1:
             # Saying "One" is a best practice, but some AI players may chose not to do so and take the intentional draw.
-            print("%s: says: One!" % self.name)
+            print("%s says: One!" % self.name)
         elif len(self.chips) == 0:
-            if board.get_forced_row() != self.index:
+            if board.get_forced_culprit() == self.index:
+                self.eligible_to_win = True
+                print("%s is out of chips but the board is forced because of them, so they can't win yet." % self.name)
+            else:
                 self.has_won = True
                 print("%s wins this round!" % self.name)
-            else:
-                print("%s is out of chips but the board is forced on their row" % self.name)
 
     def add_chip(self, chip):
         self.chips.append(chip)
@@ -35,10 +38,7 @@ class Player:
 
     def can_play_any(self, board):
         if self.chips is None or len(self.chips) == 0:
-            print("I don't have chips, but it is my turn")
-            if not board.is_forced():
-                self.has_won = True
-                print("And since the board is not forced, I have won.")
+            print("%s doesn't have chips, but it is their turn." % self.name)
             return False
 
         if board.is_forced():
@@ -85,7 +85,7 @@ class Player:
                             board.remove_train(self.index)
                             print(self.name, " plays :", chip_to_play)
                             if chip_to_play.is_double():
-                                board.set_forced(row.get_index(), chip_to_play.get_side_a())
+                                board.set_forced(row.get_index(), chip_to_play.get_side_a(), self.index)
                                 can_play = self.can_play_number(chip_to_play.get_side_a())
                                 if not can_play and board.can_draw():
                                     drawn_chip = board.draw()
@@ -132,6 +132,12 @@ class Player:
 
     def is_round_winner(self):
         return self.has_won
+
+    def declare_round_winner(self):
+        self.has_won = True
+
+    def is_eligible_to_win(self):
+        return self.eligible_to_win
 
     def set_name(self, name):
         self.name = name
