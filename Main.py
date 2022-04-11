@@ -5,16 +5,14 @@ from game.ChipFactory import *
 import random
 import time
 
-
-
-fichas_para_robar = 12
-mula_mas_alta = 12
-mula_inicial = 12
-n_jugadores = 4
-historic_winners = [0] * n_jugadores
+chips_to_draw = 12
+highest_double = 12
+initial_double = 12
+n_players = 4
+historic_winners = [0] * n_players
 
 for i in range(10):
-    game_manager = GameManager(fichas_para_robar, mula_mas_alta, mula_inicial, n_jugadores, 0, ["Pety", "Anel", "Abuela", "Titi"])
+    game_manager = GameManager(chips_to_draw, highest_double, initial_double, n_players, 0, ["Pety", "Anel", "Abuela", "Titi"])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1
@@ -26,15 +24,15 @@ print(historic_winners)
 pool = create_chips(12)
 random.shuffle(pool)
 chips = []
-for i in range(15):
+for i in range(10):
             chip = pool.pop()
             chips.append(chip)
 
 for chip in chips:
     print(chip)
-cs = generate_sequence([12], chips, 12.55, 0.99)
+cs = generate_sequence([12,0], chips, 12.55, 0.99)
 
-print("Secuencia")
+print("Sequence")
 
 for chip in cs.get_chipset():
     print(chip)
@@ -53,7 +51,10 @@ for j in range(5, 25):
             chip = pool.pop()
             chips.append(chip)
         millis = time.time() * 1000
-        cs = generate_sequence([random.randrange(12)], chips, 12.55, 0.99)
+        open_positions = []
+        for i in range(random.randint(1,3)):
+            open_positions.append(random.randrange(12))
+        cs = generate_sequence(open_positions, chips, 12.55, 0.99)
         run_time = time.time() * 1000 - millis
         total_time += run_time
         if run_time > max_time:

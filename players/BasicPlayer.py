@@ -20,10 +20,15 @@ class Player:
         self.has_won = False
         self.eligible_to_win = False
 
-    def end_turn(self, board):
+    def end_turn(self, board, say_one=True):
         if len(self.chips) == 1:
-            # Saying "One" is a best practice, but some AI players may chose not to do so and take the intentional draw.
-            print("%s says: One!" % self.name)
+            # Saying "One" when you have 1 chip left is a best practice, but some AI players may chose not to do so and take the intentional penalty draw.
+            if say_one:
+                print("%s says: One!" % self.name)
+            elif board.can_draw():
+                print("%s intentionally skips saying \"One\"")
+                self.add_chip(board.draw())
+
         elif len(self.chips) == 0:
             if board.get_forced_culprit() == self.index:
                 self.eligible_to_win = True
@@ -52,8 +57,7 @@ class Player:
         return False
 
     def can_play_forced(self, board):
-        numbers = board.get_forced_numbers()
-        for number in numbers:
+        for number in board.get_forced_numbers():
             if self.can_play_number(number):
                 print("%s is forced and has a chip to play" % self.name)
                 return True
@@ -69,6 +73,8 @@ class Player:
     def play(self, board):
         if board.is_forced():
             self.play_forced(board)
+        elif board.get_row(self.index).can_play_many():
+            self.play_first(board)
         else:
             self.play_any(board)
         self.end_turn(board)
@@ -85,28 +91,37 @@ class Player:
                             board.remove_train(self.index)
                             print(self.name, " plays :", chip_to_play)
                             if chip_to_play.is_double():
-                                board.set_forced(row.get_index(), chip_to_play.get_side_a(), self.index)
-                                can_play = self.can_play_number(chip_to_play.get_side_a())
-                                if not can_play and board.can_draw():
+                                can_play = self.can_play_number(open_number)
+                                if can_play:
+                                    for second_chip in self.chips:
+                                        if second_chip.__contains__(open_number):
+                                            second_chip_to_play = second_chip
+                                            self.chips.remove(second_chip)
+                                            board.play_chip(second_chip_to_play, open_number, row.get_index())
+                                            print(self.name, " plays a second chip :", second_chip_to_play)
+                                            return
+                                if board.can_draw():
                                     drawn_chip = board.draw()
                                     self.add_chip(drawn_chip)
-                                    can_play = drawn_chip.__contains__(chip_to_play.get_side_a())
+                                    can_play = drawn_chip.__contains__(open_number)
                                 if can_play:
-                                    self.play(board)
+                                    self.chips.remove(drawn_chip)
+                                    board.play_chip(drawn_chip, open_number, row.get_index())
                                 else:
-                                    board.set_train(self.index)
-                            return
+                                    board.set_forced(row.get_index(), open_number, self.index)
+                        return
 
     def play_forced(self, board):
+        row = board.get_forced_row()
         for number in board.get_forced_numbers():
             for chip in self.chips:
                 if chip.__contains__(number):
                     chip_to_play = chip
-                    print(self.name, " plays :", chip_to_play)
+                    print("%s plays :%s" % (self.name, chip_to_play))
                     self.chips.remove(chip)
-                    board.play_chip(chip_to_play, number, board.get_forced_row())
+                    board.play_chip(chip_to_play, number, row)
                     board.remove_forced(number)
-                    if not board.is_forced and board.get_forced_row == self.index:
+                    if not board.is_forced and row == self.index:
                         board.remove_train(self.index)
                     return
 

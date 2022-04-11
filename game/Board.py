@@ -29,6 +29,7 @@ class Board:
         self.forced_row = row
         self.forced_numbers.append(numbers)
         self.forced_culprit = culprit
+        self.set_train(culprit)
 
     def remove_forced(self, number):
         self.forced_numbers.remove(number)
