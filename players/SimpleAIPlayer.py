@@ -20,12 +20,13 @@ class SimpleAIPlayer(Player):
         else:
             self.play_forced_elsewhere(board)
 
+    # TODO: Test using sequence.get_chipset_weighted_value() instead of regular sequence.get_chipset_value()
     def play_forced_elsewhere(self, board):
         best_chip = None
         best_number = None
         chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
-
         max_value = -math.inf
+
         for chip in chips_not_in_sequence:
             for number in board.get_forced_numbers():
                 if chip.__contains__(number) and chip.get_value() > max_value:
@@ -33,22 +34,30 @@ class SimpleAIPlayer(Player):
                     best_number = number
                     max_value = chip.get_value()
 
-        if best_chip is None:
-            min_points_lost = math.inf
-            self.needs_to_update_sequence = True
-            for chip in self.chip_node_list.get_chipset():
-                for number in board.get_forced_numbers():
-                    if chip.__contains__(number):
-                        new_chips = self.chips.copy()
-                        new_chips.remove(chip)
-                        new_sequence = generate_sequence(board.get_row(self.index).get_open_positions(), new_chips,
-                                                         self.heuristic_value_per_chip, self.front_loaded_index)
-                        if new_sequence is not None:
-                            points_lost = self.chip_node_list.get_chipset_weighted_value() - new_sequence.get_value() - chip.get_value()
-                        if points_lost < min_points_lost:
-                            min_points_lost = points_lost
-                            best_chip = chip
-                            best_number = number
+        min_points_lost = math.inf
+        current_sequence_value = self.chip_node_list.get_chipset_value()
+
+        if best_chip is not None:
+            min_points_lost = -best_chip.get_value()
+
+        for chip in self.chip_node_list.get_chipset():
+            for number in board.get_forced_numbers():
+                if chip.__contains__(number):
+                    new_chips = self.chips.copy()
+                    new_chips.remove(chip)
+                    new_sequence = generate_sequence(board.get_row(self.index).get_open_positions(), new_chips,
+                                                     self.heuristic_value_per_chip, self.front_loaded_index)
+
+                    if new_sequence is None:
+                        points_lost = current_sequence_value - chip.get_value()
+                    else:
+                        points_lost = current_sequence_value - new_sequence.get_chipset_value() - chip.get_value()
+
+                    if points_lost < min_points_lost or (points_lost == min_points_lost and chip.get_value() > best_chip.get_value()):
+                        self.needs_to_update_sequence = True
+                        min_points_lost = points_lost
+                        best_number = number
+                        best_chip = chip
 
         board.play_chip(best_chip, best_number, board.get_forced_row())
         board.remove_forced(best_number)
@@ -300,9 +309,9 @@ class SimpleAIPlayer(Player):
             print(chip)
 
     def init_round(self, chips):
-        self.needs_to_update_sequence = True
         super().init_round(chips)
+        self.needs_to_update_sequence = True
 
     def add_chip(self, chip):
-        self.needs_to_update_sequence = True
         super().add_chip(chip)
+        self.needs_to_update_sequence = True
