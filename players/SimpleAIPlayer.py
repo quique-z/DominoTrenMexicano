@@ -107,6 +107,7 @@ class SimpleAIPlayer(Player):
 
     def play_first(self, board):
         forced_counter = 0
+
         while self.chip_node_list.has_chip_to_play():
             cn = self.chip_node_list.get_best_chip_to_play()
             chips = cn.get_next_piece()
@@ -119,34 +120,29 @@ class SimpleAIPlayer(Player):
                 self.chips.remove(chip)
 
         if forced_counter > 0:
+            new_chips = []
             for i in range(forced_counter):
                 if board.can_draw():
-                    chip = board.draw()
-                    self.chips.append(chip)
+                    new_chips.append(board.draw())
                     print("%s draws chip %s" % (self.name, chip.__str__()))
-                    for number in board.get_forced_numbers():
-                        if chip.__contains__(number):
-                            board.play_chip(chip, number, self.index)
-                            board.remove_forced(number)
-                            self.chips.remove(chip)
-                            forced_counter -= 1
-                            break
 
-        if forced_counter > 0:
-            board.set_train(self.index)
-        else:
-            board.remove_train(self.index)
+            for number in board.get_forced_numbers():
+                for chip in new_chips:
+                    if chip.__contains__(number):
+                        board.play_chip(chip, number, self.index)
+                        board.remove_forced(number)
+                        forced_counter -= 1
+                        new_chips.remove(chip)
+                        break
 
-    def update_sequence(self, board):
-        self.needs_to_update_sequence = False
-        self.chip_node_list = generate_sequence(
-            board.get_row(self.index).get_open_positions(),
-            self.chips,
-            self.heuristic_value_per_chip,
-            self.front_loaded_index)
+            if forced_counter > 0:
+                board.set_train(self.index)
+                self.chips.extend(new_chips)
+            else:
+                board.remove_train(self.index)
 
     def play(self, board):
-        print(self.name + " juega: ")
+        print("%s plays: " % self.name)
         if self.needs_to_update_sequence or board.get_forced_row() == self.index:
             print(self.name, " updating sequence")
             self.update_sequence(board)
@@ -310,6 +306,14 @@ class SimpleAIPlayer(Player):
                                 return True
 
         return False
+
+    def update_sequence(self, board):
+        self.needs_to_update_sequence = False
+        self.chip_node_list = generate_sequence(
+            board.get_row(self.index).get_open_positions(),
+            self.chips,
+            self.heuristic_value_per_chip,
+            self.front_loaded_index)
 
     def play_chips(self, board, chips, side, row):
         for chip in chips:
