@@ -81,7 +81,7 @@ class GameManager:
             if not self.board.is_forced():
                 for player in self.players:
                     if player.is_eligible_to_win():
-                        player.declare_round_winner()
+                        player.declare_as_round_winner()
 
         return not self.players[self.previous_player_id()].is_round_winner()
 

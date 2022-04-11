@@ -148,7 +148,7 @@ class Player:
     def is_round_winner(self):
         return self.has_won
 
-    def declare_round_winner(self):
+    def declare_as_round_winner(self):
         self.has_won = True
 
     def is_eligible_to_win(self):

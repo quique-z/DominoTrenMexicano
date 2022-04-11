@@ -24,10 +24,10 @@ class Board:
         else:
             self.rows[row].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
 
-    def set_forced(self, row, numbers, culprit):
+    def set_forced(self, row, number, culprit):
         self.forced = True
         self.forced_row = row
-        self.forced_numbers.append(numbers)
+        self.forced_numbers.append(number)
         self.forced_culprit = culprit
         self.set_train(culprit)
 

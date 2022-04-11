@@ -63,38 +63,47 @@ class SimpleAIPlayer(Player):
         board.remove_forced(best_number)
         self.chips.remove(best_chip)
 
+    # TODO: Test with sequence.get_chipset_weighted_value()
     def play_forced_self(self, board):
+        best_chip = None
+        best_number = None
+
         if self.chip_node_list.has_number_to_play_immediately(board.get_forced_numbers()):
             chip_node = self.chip_node_list.get_best_numbered_chip_to_play(board.get_forced_numbers())
-            board.play_chip(chip_node.get_chip(), chip_node.get_chip_side_to_play(), self.index)
-            board.remove_forced(chip_node.get_chip_side_to_play())
-            self.chips.remove(chip_node.get_chip())
+            best_chip = chip_node.get_chip()
+            best_number = chip_node.get_chip_side_to_play()
         else:
-            min_loss = math.inf
-            open_positions = board.get_row(self.index).get_open_positions()
+            self.needs_to_update_sequence = True
+            best_sequence_plus_chip_value = 0
+            my_open_positions = board.get_row(self.index).get_open_positions()
+
             for chip in self.chips:
                 for number in board.get_forced_numbers():
                     if chip.__contains__(number):
                         new_chips = self.chips.copy()
                         new_chips.remove(chip)
-                        new_open_positions = open_positions.copy()
+                        new_open_positions = my_open_positions.copy()
                         new_open_positions.remove(number)
                         new_open_positions.append(chip.get_other_side(number))
-                        new_sequence = generate_sequence(
-                            new_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
-                        new_excess_value = self.get_current_points() - chip.get_value()
-                        if new_sequence is not None:
-                            new_excess_value -= new_sequence.get_chain_value()
-                        if new_excess_value < min_loss:
-                            min_loss = new_excess_value
-                            best_chip = chip
-                            best_number = number
+                        new_sequence_plus_chip_value = chip.get_value()
 
-            board.play_chip(best_chip, best_number, board.get_forced_row())
-            if board.get_forced_row() == self.index and len(board.get_forced_numbers()) == 1:
-                board.remove_train(self.index)
-            board.remove_forced(best_number)
-            self.chips.remove(best_chip)
+                        new_sequence = generate_sequence(new_open_positions, new_chips,
+                                                         self.heuristic_value_per_chip, self.front_loaded_index)
+
+                        if new_sequence is not None:
+                            new_sequence_plus_chip_value += new_sequence.get_chipset_value()
+
+                        if new_sequence_plus_chip_value > best_sequence_plus_chip_value:
+                            best_sequence_plus_chip_value = new_sequence_plus_chip_value
+                            best_number = number
+                            best_chip = chip
+
+        board.play_chip(best_chip, best_number, self.index)
+        board.remove_forced(best_number)
+        self.chips.remove(best_chip)
+
+        if not board.is_forced():
+            board.remove_train(self.index)
 
     def play_first(self, board):
         forced_counter = 0
@@ -102,7 +111,7 @@ class SimpleAIPlayer(Player):
             cn = self.chip_node_list.get_best_chip_to_play()
             chips = cn.get_next_piece()
             for chip in chips:
-                print("%s juega ficha %s" % (self.name, chip.__str__()))
+                print("%s plays chip %s" % (self.name, chip.__str__()))
                 if chip.is_double() and len(chips) == 1:
                     forced_counter += 1
                     board.set_forced(self.index, chip.get_side_a(), self.index)
@@ -114,7 +123,7 @@ class SimpleAIPlayer(Player):
                 if board.can_draw():
                     chip = board.draw()
                     self.chips.append(chip)
-                    print("%s roba ficha %s" % (self.name, chip.__str__()))
+                    print("%s draws chip %s" % (self.name, chip.__str__()))
                     for number in board.get_forced_numbers():
                         if chip.__contains__(number):
                             board.play_chip(chip, number, self.index)
