@@ -16,8 +16,10 @@ class SimpleAIPlayer(Player):
 
     def play_forced(self, board):
         if board.get_forced_row() == self.index:
+            print("%s playing forced self" % self.name)
             self.play_forced_self(board)
         else:
+            print("%s playing forced elsewhere" % self.name)
             self.play_forced_elsewhere(board)
 
     # TODO: Test using sequence.get_chipset_weighted_value() instead of regular sequence.get_chipset_value()
@@ -142,36 +144,24 @@ class SimpleAIPlayer(Player):
                 board.remove_train(self.index)
 
     def play(self, board):
-        print("%s plays: " % self.name)
         if self.needs_to_update_sequence or board.get_forced_row() == self.index:
-            print(self.name, " updating sequence")
+            print("%s is updating sequence" % self.name)
             self.update_sequence(board)
 
         if board.is_forced():
-            print(self.name, " am forced")
+            print("%s is forced" % self.name)
             self.play_forced(board)
-            self.needs_to_update_sequence = True
-            self.end_turn(board)
-            return
-
-        if self.chip_node_list.get_chipset_weighted_value() == self.get_current_points() and board.get_row(self.index).can_play_many():
+        elif self.can_play_all_my_chips_if_i_play_many(board):
+            print("%s is playing all their chips" % self.name)
             self.play_first(board)
-            self.end_turn(board)
-            return
-
-        can_play_elsewhere = not board.has_train(self.index)
-        if can_play_elsewhere:
-            can_play_elsewhere = self.can_play_cheaply_elsewhere(board)
-
-        if can_play_elsewhere:
-            print(self.name, " playing elsewhere")
-            self.play_elsewhere(board)
-            self.needs_to_update_sequence = True
+        elif self.can_play_cheaply_elsewhere(board):
+            print("%s is playing elsewhere" % self.name)
+            self.play_cheaply_elsewhere(board)
         elif board.get_row(self.index).can_play_many():
-            print(self.name, " playing many")
+            print("%s is playing many" % self.name)
             self.play_first(board)
         else:
-            print(self.name, " playing self, only one")
+            print("%s is playing on their row, only one chip" % self.name)
             self.play_any(board)
         self.end_turn(board)
 
@@ -182,23 +172,58 @@ class SimpleAIPlayer(Player):
             self.play_chips(board, chip.get_next_piece(), side_to_play, self.index)
 
             if chip.is_chip_double() and len(chip.get_next_piece()) == 1:
+                print("%s played a double but has no second chip" % self.name)
                 if board.can_draw():
                     drawn_chip = board.draw()
-                    self.add_chip(drawn_chip)
+                    print("%s draws %s" % (self.name, drawn_chip))
                     if drawn_chip.__contains__(side_to_play):
+                        print("The drawn chip is playable!")
                         self.play_chips(board, [drawn_chip], side_to_play, self.index)
                     else:
+                        self.add_chip(drawn_chip)
                         board.set_train(self.index)
                         board.set_forced(self.index, side_to_play, self.index)
                 else:
                     board.set_train(self.index)
-                    board.set_forced(self.index, chip.get_chip_side_to_play(), self.index)
+                    board.set_forced(self.index,side_to_play, self.index)
             if board.get_forced_row() != self.index:
                 board.remove_train(self.index)
         else:
+            print("I should not be here")
             super().play_any(board)
 
-    def play_elsewhere(self, board):
+    def can_play_cheaply_elsewhere(self, board):
+        if board.has_train(self.index):
+            return False
+        # TODO: Some high value doubles might be worth playing even if you don't have a follow up. Current
+        #  implementation only checks if there is a high-value double without more consideration.
+        # TODO: Check for needs to update sequence
+        chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
+        for chip in chips_not_in_sequence:
+            if not (chip.is_double() and chip.get_value() >= 20):
+                for row in board.get_rows():
+                    if row.get_index() != self.index and row.has_train():
+                        for open_position in row.get_open_positions():
+                            if chip.__contains__(open_position):
+                                return True
+
+        my_open_positions = board.get_row(self.index).get_open_positions()
+
+        for row in board.get_rows():
+            if row.get_index() != self.index and row.has_train():
+                for number in row.get_open_positions():
+                    for chip in self.chip_node_list.get_chipset():
+                        if chip.__contains__(number):
+                            new_chips = self.chips.copy()
+                            new_chips.remove(chip)
+                            new_sequence = generate_sequence(
+                                my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                            if new_sequence is not None and new_sequence.get_chipset_weighted_value() + chip.get_value() >= self.chip_node_list.get_chipset_weighted_value():
+                                return True
+
+        return False
+
+    def play_cheaply_elsewhere(self, board):
         max_value = -math.inf
         best_chip = None
         best_side = None
@@ -279,32 +304,11 @@ class SimpleAIPlayer(Player):
 
         self.play_chips(board, best_chip, best_side, best_row)
 
-    def can_play_cheaply_elsewhere(self, board):
-        # TODO: Some high value doubles might be worth playing even if you don't have a follow up. Current
-        #  implementation only checks if there is a high-value double without more consideration.
-        chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
-        for chip in chips_not_in_sequence:
-            if not (chip.is_double() and chip.get_value() >= 20):
-                for row in board.get_rows():
-                    if row.get_index() != self.index and row.has_train():
-                        for open_position in row.get_open_positions():
-                            if chip.__contains__(open_position):
-                                return True
-
-        my_open_positions = board.get_row(self.index).get_open_positions()
-
-        for row in board.get_rows():
-            if row.get_index() != self.index and row.has_train():
-                for number in row.get_open_positions():
-                    for chip in self.chip_node_list.get_chipset():
-                        if chip.__contains__(number):
-                            new_chips = self.chips.copy()
-                            new_chips.remove(chip)
-                            new_sequence = generate_sequence(
-                                my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
-                            if new_sequence is not None and new_sequence.get_chipset_weighted_value() + chip.get_value() >= self.chip_node_list.get_chipset_weighted_value():
-                                return True
-
+    def can_play_all_my_chips_if_i_play_many(self, board):
+        if not board.get_row(self.index).can_play_many():
+            return False
+        if self.chip_node_list.get_chipset_value() == self.get_current_points():
+            return True
         return False
 
     def update_sequence(self, board):
@@ -319,7 +323,7 @@ class SimpleAIPlayer(Player):
         for chip in chips:
             board.play_chip(chip, side, row)
             self.chips.remove(chip)
-            print(chip)
+            print("%s plays %s" % (chip, self.name))
 
     def init_round(self, chips):
         super().init_round(chips)

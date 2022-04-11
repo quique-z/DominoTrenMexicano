@@ -86,11 +86,11 @@ class GameManager:
         return not self.players[self.previous_player_id()].is_round_winner()
 
     def next_turn(self):
-        can_play = self.players[self.turn].can_play_any(self.board)
+        can_play = self.players[self.turn].can_play(self.board)
 
         if not can_play and self.board.can_draw():
             self.players[self.turn].add_chip(self.board.draw())
-            can_play = self.players[self.turn].can_play_any(self.board)
+            can_play = self.players[self.turn].can_play(self.board)
 
         if can_play:
             self.players[self.turn].play(self.board)

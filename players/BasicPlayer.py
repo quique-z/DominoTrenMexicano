@@ -41,20 +41,15 @@ class Player:
         self.chips.append(chip)
         print("%s draws: %s" % (self.name, chip.__str__()))
 
-    def can_play_any(self, board):
+    def can_play(self, board):
         if self.chips is None or len(self.chips) == 0:
             print("%s doesn't have chips, but it is their turn." % self.name)
             return False
 
         if board.is_forced():
             return self.can_play_forced(board)
-
-        for row in board.get_rows():
-            if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
-                for open_position in row.get_open_positions():
-                    if self.can_play_number(open_position):
-                        return True
-        return False
+        else:
+            return self.can_play_any(board)
 
     def can_play_forced(self, board):
         for number in board.get_forced_numbers():
@@ -64,6 +59,14 @@ class Player:
         print("%s is forced and doesn't have a chip to play" % self.name)
         return False
 
+    def can_play_any(self, board):
+        for row in board.get_rows():
+            if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
+                for open_position in row.get_open_positions():
+                    if self.can_play_number(open_position):
+                        return True
+        return False
+
     def can_play_number(self, number):
         for chip in self.chips:
             if chip.__contains__(number):
@@ -71,7 +74,9 @@ class Player:
         return False
 
     def play(self, board):
+        print("%s plays: " % self.name)
         if board.is_forced():
+            print("%s is forced" % self.name)
             self.play_forced(board)
         elif board.get_row(self.index).can_play_many():
             self.play_first(board)
