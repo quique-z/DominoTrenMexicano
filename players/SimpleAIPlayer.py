@@ -7,12 +7,13 @@ from ai.SequenceGeneration import *
 
 class SimpleAIPlayer(Player):
     # TODO: Danger of someone else winning is not taken into consideration yet.
-    def __init__(self, index):
-        super().__init__(index)
+    def __init__(self, index, name=None):
+        super().__init__(index, name)
         self.chip_node_list = None
         self.needs_to_update_sequence = True
         self.heuristic_value_per_chip = 7
         self.front_loaded_index = 0.99
+        self.play_chip_elsewhere_multiplier = 1.5
 
     def play_forced(self, board):
         if board.get_forced_row() == self.index:
@@ -195,12 +196,11 @@ class SimpleAIPlayer(Player):
     def can_play_cheaply_elsewhere(self, board):
         if board.has_train(self.index):
             return False
-        # TODO: Some high value doubles might be worth playing even if you don't have a follow up. Current
-        #  implementation only checks if there is a high-value double without more consideration.
-        # TODO: Check for needs to update sequence
+
         chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
+
         for chip in chips_not_in_sequence:
-            if not (chip.is_double() and chip.get_value() >= 20):
+            if not chip.is_double():
                 for row in board.get_rows():
                     if row.get_index() != self.index and row.has_train():
                         for open_position in row.get_open_positions():
@@ -216,13 +216,18 @@ class SimpleAIPlayer(Player):
                         if chip.__contains__(number):
                             new_chips = self.chips.copy()
                             new_chips.remove(chip)
-                            new_sequence = generate_sequence(
-                                my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
-                            if new_sequence is not None and new_sequence.get_chipset_weighted_value() + chip.get_value() >= self.chip_node_list.get_chipset_weighted_value():
-                                return True
+                            new_sequence = generate_sequence(my_open_positions, new_chips,
+                                                             self.heuristic_value_per_chip, self.front_loaded_index)
+                            new_sequence_value = chip.get_value() * self.play_chip_elsewhere_multiplier
 
+                            if new_sequence is not None:
+                                new_sequence_value += new_sequence.get_chipset_value()
+
+                            if new_sequence_value >= self.chip_node_list.get_chipset_value():
+                                return True
         return False
 
+    # TODO: check for needs to update sequence
     def play_cheaply_elsewhere(self, board):
         max_value = -math.inf
         best_chip = None

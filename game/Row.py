@@ -1,10 +1,10 @@
 class Row:
 
     def __init__(self, index, center_double, name):
-        self.index = index
         self.open_positions = [center_double]
-        self.train = False
         self.is_empty = True
+        self.train = False
+        self.index = index
         self.name = name
 
     def set_train(self):
@@ -41,7 +41,7 @@ class Row:
         return self.is_empty
 
     def __str__(self):
-        s = ["Row %s, contents: " % self.name]
+        s = ["%s row's contents: " % self.name]
         for i in self.open_positions:
             s.append("%s " % i)
         return ''.join(s)

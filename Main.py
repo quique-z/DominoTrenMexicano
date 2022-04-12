@@ -12,7 +12,7 @@ n_players = 4
 historic_winners = [0] * n_players
 
 for i in range(10):
-    game_manager = GameManager(chips_to_draw, highest_double, initial_double, n_players, 0, ["Pety", "Anel", "Abuela", "Titi"])
+    game_manager = GameManager(chips_to_draw, highest_double, initial_double, 0, n_players, ["Pety", "Anel", "Abuela", "Titi"])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1

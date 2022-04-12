@@ -7,6 +7,7 @@ def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_l
     chip_node_list = ChipNodeList()
     new_chips = chips.copy()
     ready_to_exit = False
+    positions_to_consider = open_positions.copy()
 
     while not ready_to_exit:
         ready_to_exit = True
@@ -14,7 +15,7 @@ def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_l
         best_open_position = None
         best_score = -math.inf
 
-        for open_position in open_positions:
+        for open_position in positions_to_consider:
             sequence = generate_sequence_recursive(open_position, new_chips, heuristic_value_per_chip, front_loaded_index)
             if sequence is not None and sequence.get_chain_value() > best_score:
                 best_sequence = sequence
@@ -25,7 +26,7 @@ def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_l
         if best_sequence is not None:
             chip_node_list.add(best_sequence)
             new_chips = list(set(new_chips) - set(best_sequence.get_chipset()))
-            open_positions.remove(best_open_position)
+            positions_to_consider.remove(best_open_position)
 
     return chip_node_list
 
