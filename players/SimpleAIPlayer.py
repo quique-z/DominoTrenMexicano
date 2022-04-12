@@ -14,6 +14,7 @@ class SimpleAIPlayer(Player):
         self.heuristic_value_per_chip = 7
         self.front_loaded_index = 0.99
         self.play_chip_elsewhere_multiplier = 1.5
+        self.penalty_for_playing_lone_double = 12
 
     def play_forced(self, board):
         if board.get_forced_row() == self.index:
@@ -186,126 +187,163 @@ class SimpleAIPlayer(Player):
                         board.set_forced(self.index, side_to_play, self.index)
                 else:
                     board.set_train(self.index)
-                    board.set_forced(self.index,side_to_play, self.index)
+                    board.set_forced(self.index, side_to_play, self.index)
             if board.get_forced_row() != self.index:
                 board.remove_train(self.index)
         else:
             print("I should not be here")
             super().play_any(board)
 
-    def can_play_cheaply_elsewhere(self, board):
+    def can_play_cheaply_elsewhere(self, board, min_acceptable_value=0):
         if board.has_train(self.index):
             return False
 
         chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
+        my_open_positions = board.get_row(self.index).get_open_positions()
+        my_current_chain_value = self.chip_node_list.get_chipset_value()
+        doubles = dict()
 
         for chip in chips_not_in_sequence:
-            if not chip.is_double():
+            if chip.is_double():
+                doubles[chip.get_side_a()] = chip
                 for row in board.get_rows():
-                    if row.get_index() != self.index and row.has_train():
-                        for open_position in row.get_open_positions():
-                            if chip.__contains__(open_position):
-                                return True
-
-        my_open_positions = board.get_row(self.index).get_open_positions()
+                    if row.get_index() != self.get_index() and row.has_train():
+                        for position in row.get_open_positions():
+                            if chip.__contains__(position):
+                                value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
+                                if value > min_acceptable_value:
+                                    return True
 
         for row in board.get_rows():
-            if row.get_index() != self.index and row.has_train():
-                for number in row.get_open_positions():
+            if row.get_index() != self.get_index() and row.has_train():
+                for position in row.get_open_positions():
+                    for chip in chips_not_in_sequence:
+                        if chip.__contains__(position) and not chip.is_double():
+                            current_chip = [chip]
+                            current_value = chip.get_value() * self.play_chip_elsewhere_multiplier
+                            if doubles.__contains__(position):
+                                current_chip.insert(0, doubles.get(position))
+                                current_value += doubles.get(position).get_value() * self.play_chip_elsewhere_multiplier + self.heuristic_value_per_chip
+                            if current_value > min_acceptable_value:
+                                return True
+
+        for chip in self.chip_node_list.get_chipset():
+            if chip.is_double():
+                doubles[chip.get_side_a()] = chip
+                for row in board.get_rows():
+                    if row.get_index() != self.get_index() and row.has_train():
+                        for position in row.get_open_positions():
+                            if chip.__contains__(position):
+                                value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
+                                if value > min_acceptable_value:
+                                    return True
+
+        for row in board.get_rows():
+            if row.get_index() != self.get_index() and row.has_train():
+                for position in row.get_open_positions():
                     for chip in self.chip_node_list.get_chipset():
-                        if chip.__contains__(number):
+                        if chip.__contains__(position) and not chip.is_double():
                             new_chips = self.chips.copy()
                             new_chips.remove(chip)
-                            new_sequence = generate_sequence(my_open_positions, new_chips,
-                                                             self.heuristic_value_per_chip, self.front_loaded_index)
-                            new_sequence_value = chip.get_value() * self.play_chip_elsewhere_multiplier
+                            new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                            current_chip = [chip]
+                            current_value = chip.get_value() * self.play_chip_elsewhere_multiplier + new_sequence.get_chipset_value() - my_current_chain_value
 
-                            if new_sequence is not None:
-                                new_sequence_value += new_sequence.get_chipset_value()
+                            if doubles.__contains__(position):
+                                new_chips.remove(doubles.get(position))
+                                new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                                value_with_double = (chip.get_value() + doubles.get(position).get_value()) * self.play_chip_elsewhere_multiplier \
+                                                    + self.heuristic_value_per_chip + new_sequence.get_chipset_value() - my_current_chain_value
+                                if value_with_double > current_value:
+                                    current_value = value_with_double
+                                    current_chip.insert(0, doubles.get(position))
 
-                            if new_sequence_value >= self.chip_node_list.get_chipset_value():
+                            if current_value > min_acceptable_value:
                                 return True
+
         return False
 
-    # TODO: check for needs to update sequence
     def play_cheaply_elsewhere(self, board):
-        max_value = -math.inf
-        best_chip = None
-        best_side = None
-        best_row = None
-        doubles_to_resolve = []
-        rows_where_doubles_go = []
         chips_not_in_sequence = list(set(self.chips) - set(self.chip_node_list.get_chipset()))
+        my_open_positions = board.get_row(self.index).get_open_positions()
+        my_current_chain_value = self.chip_node_list.get_chipset_value()
+        doubles = dict()
+
+        best_value = -math.inf
+        best_chip = []
+        best_side = -1
+        best_row = -1
 
         for chip in chips_not_in_sequence:
-            for row in board.get_rows():
-                if row.get_index() != self.index and row.has_train():
-                    for open_position in row.get_open_positions():
-                        if chip.__contains__(open_position):
-                            if chip.is_double():
-                                doubles_to_resolve.append(chip)
-                                rows_where_doubles_go.append(row.get_index())
-                            elif chip.get_value() > max_value:
-                                max_value = chip.get_value()
-                                best_chip = [chip]
-                                best_side = open_position
+            if chip.is_double():
+                doubles[chip.get_side_a()] = chip
+                for row in board.get_rows():
+                    if row.get_index() != self.get_index() and row.has_train():
+                        for position in row.get_open_positions():
+                            if chip.__contains__(position):
+                                value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
+                                if value > best_value:
+                                    best_value = value
+                                    best_chip = [chip]
+                                    best_side = position
+                                    best_row = row.get_index()
+
+        for row in board.get_rows():
+            if row.get_index() != self.get_index() and row.has_train():
+                for position in row.get_open_positions():
+                    for chip in chips_not_in_sequence:
+                        if chip.__contains__(position) and not chip.is_double():
+                            current_chip = [chip]
+                            current_value = chip.get_value() * self.play_chip_elsewhere_multiplier
+                            if doubles.__contains__(position):
+                                current_chip.insert(0, doubles.get(position))
+                                current_value += doubles.get(position).get_value() * self.play_chip_elsewhere_multiplier + self.heuristic_value_per_chip
+                            if current_value > best_value:
+                                best_value = current_value
+                                best_chip = current_chip
+                                best_side = position
                                 best_row = row.get_index()
 
-        for i in range(len(doubles_to_resolve)):
-            number = doubles_to_resolve[i].get_side_a()
-            value = doubles_to_resolve[i].get_value()
-            for chip in chips_not_in_sequence:
-                if chip.__contains__(number) and not chip.is_double() \
-                        and value + chip.get_value() + self.heuristic_value_per_chip > max_value:
-                    max_value = value + chip.get_value()
-                    best_chip = [doubles_to_resolve[i], chip]
-                    best_side = number
-                    best_row = rows_where_doubles_go[i]
+        for chip in self.chip_node_list.get_chipset():
+            if chip.is_double():
+                doubles[chip.get_side_a()] = chip
+                for row in board.get_rows():
+                    if row.get_index() != self.get_index() and row.has_train():
+                        for position in row.get_open_positions():
+                            if chip.__contains__(position):
+                                value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
+                                if value > best_value:
+                                    best_value = value
+                                    best_chip = [chip]
+                                    best_side = position
+                                    best_row = row.get_index()
 
-        if best_chip is None:
-            my_open_positions = board.get_row(self.index).get_open_positions()
-            doubles_to_resolve = []
-            rows_where_doubles_go = []
+        for row in board.get_rows():
+            if row.get_index() != self.get_index() and row.has_train():
+                for position in row.get_open_positions():
+                    for chip in self.chip_node_list.get_chipset():
+                        if chip.__contains__(position) and not chip.is_double():
+                            new_chips = self.chips.copy()
+                            new_chips.remove(chip)
+                            new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                            current_chip = [chip]
+                            current_value = chip.get_value() * self.play_chip_elsewhere_multiplier + new_sequence.get_chipset_value() - my_current_chain_value
 
-            for row in board.get_rows():
-                if row.get_index() != self.index and row.has_train():
-                    for number in row.get_open_positions():
-                        for chip in self.chips:
-                            if chip.__contains__(number):
-                                if chip.is_double():
-                                    doubles_to_resolve.append(chip)
-                                    rows_where_doubles_go.append(row.get_index())
-                                else:
-                                    new_chips = self.chips.copy()
-                                    new_chips.remove(chip)
-                                    new_sequence = generate_sequence(
-                                        my_open_positions, new_chips, self.heuristic_value_per_chip,
-                                        self.front_loaded_index)
-                                    if new_sequence is not None and new_sequence.get_value() + chip.get_value() >= self.chip_node_list.get_value() and chip.get_value() > max_value:
-                                        best_chip = [chip]
-                                        best_side = number
-                                        best_row = row.get_index()
-                                        max_value = chip.get_value()
+                            if doubles.__contains__(position):
+                                new_chips.remove(doubles.get(position))
+                                new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
+                                value_with_double = (chip.get_value() + doubles.get(position).get_value()) * self.play_chip_elsewhere_multiplier \
+                                    + self.heuristic_value_per_chip + new_sequence.get_chipset_value() - my_current_chain_value
+                                if value_with_double > current_value:
+                                    current_value = value_with_double
+                                    current_chip.insert(0, doubles.get(position))
 
-            for i in range(len(doubles_to_resolve)):
-                double = doubles_to_resolve[i]
-                number = double.get_side_a()
-                row = rows_where_doubles_go[i]
-                for chip in self.chips:
-                    if chip.__contains__(number) and not chip.is_double():
-                        new_chips = self.chips.copy()
-                        new_chips.remove(chip)
-                        new_chips.remove(double)
-                        new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
-
-                        if new_sequence is not None \
-                                and new_sequence.get_value() + chip.get_value() + double.get_value() >= \
-                                self.chip_node_list.get_value() \
-                                and chip.get_value() + double.get_value() + self.heuristic_value_per_chip > max_value:
-                            best_chip = [double, chip]
-                            best_side = number
-                            best_row = row
-                            max_value = double.get_value() + chip.get_value() + self.heuristic_value_per_chip
+                            if current_value > best_value:
+                                self.needs_to_update_sequence = True
+                                best_value = current_value
+                                best_chip = current_chip
+                                best_side = position
+                                best_row = row.get_index()
 
         self.play_chips(board, best_chip, best_side, best_row)
 

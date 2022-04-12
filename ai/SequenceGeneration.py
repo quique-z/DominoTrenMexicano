@@ -4,35 +4,35 @@ from ai.ChipNodeList import ChipNodeList
 
 
 def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_loaded_index=1):
+    positions_to_consider = open_positions.copy()
     chip_node_list = ChipNodeList()
     new_chips = chips.copy()
     ready_to_exit = False
-    positions_to_consider = open_positions.copy()
 
     while not ready_to_exit:
-        ready_to_exit = True
-        best_sequence = None
         best_open_position = None
         best_score = -math.inf
+        ready_to_exit = True
+        best_sequence = None
 
-        for open_position in positions_to_consider:
-            sequence = generate_sequence_recursive(open_position, new_chips, heuristic_value_per_chip, front_loaded_index)
+        for position in positions_to_consider:
+            sequence = generate_sequence_recursive(position, new_chips, heuristic_value_per_chip, front_loaded_index)
             if sequence is not None and sequence.get_chain_value() > best_score:
-                best_sequence = sequence
-                best_open_position = open_position
                 best_score = sequence.get_chain_value()
+                best_open_position = position
+                best_sequence = sequence
                 ready_to_exit = False
 
         if best_sequence is not None:
-            chip_node_list.add(best_sequence)
             new_chips = list(set(new_chips) - set(best_sequence.get_chipset()))
             positions_to_consider.remove(best_open_position)
+            chip_node_list.add(best_sequence)
 
     return chip_node_list
 
 
 def generate_sequence_recursive(open_position, chips, heuristic_value_per_chip=0, front_loaded_index=1):
-    if chips is None or len(chips) == 0:
+    if len(chips) == 0:
         return None
 
     max_value = -math.inf
