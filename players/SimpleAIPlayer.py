@@ -61,10 +61,8 @@ class SimpleAIPlayer(Player):
                         min_points_lost = points_lost
                         best_number = number
                         best_chip = chip
-
-        board.play_chip(best_chip, best_number, board.get_forced_row())
+        self.play_chips(board, [best_chip], best_number, board.get_forced_row())
         board.remove_forced(best_number)
-        self.chips.remove(best_chip)
 
     # TODO: Test with sequence.get_chipset_weighted_value()
     def play_forced_self(self, board):
@@ -101,55 +99,37 @@ class SimpleAIPlayer(Player):
                             best_number = number
                             best_chip = chip
 
-        board.play_chip(best_chip, best_number, self.index)
+        self.play_chips(board, [best_chip], best_number, self.index)
         board.remove_forced(best_number)
-        self.chips.remove(best_chip)
 
         if not board.is_forced():
             board.remove_train(self.index)
 
     def play_first(self, board):
-        forced_counter = 0
-
         while self.chip_node_list.has_chip_to_play():
             cn = self.chip_node_list.get_best_chip_to_play()
             chips = cn.get_next_piece()
             for chip in chips:
-                print("%s plays chip %s" % (self.name, chip.__str__()))
+                self.play_chips(board, [chip], cn.get_chip_side_to_play(), self.index)
                 if chip.is_double() and len(chips) == 1:
-                    forced_counter += 1
                     board.set_forced(self.index, chip.get_side_a(), self.index)
-                board.play_chip(chip, cn.get_chip_side_to_play(), self.index)
-                self.chips.remove(chip)
 
-        if forced_counter > 0:
-            new_chips = []
-            for i in range(forced_counter):
-                if board.can_draw():
-                    drawn_chip = board.draw()
-                    new_chips.append(drawn_chip)
-                    print("%s draws chip %s" % (self.name, drawn_chip))
-
-            for number in board.get_forced_numbers():
-                for chip in new_chips:
-                    if chip.__contains__(number):
-                        board.play_chip(chip, number, self.index)
+        if board.is_forced():
+            if board.can_draw():
+                drawn_chip = board.draw()
+                self.add_chip(drawn_chip)
+                for number in board.get_forced_numbers():
+                    if drawn_chip.__contains__(number):
+                        self.play_chips(board, [drawn_chip], number, self.index)
                         board.remove_forced(number)
-                        new_chips.remove(chip)
-                        break
 
-            if len(new_chips) > 0:
-                self.needs_to_update_sequence = True
-                self.chips.extend(new_chips)
-                board.set_train(self.index)
-            else:
-                board.remove_train(self.index)
+        if board.is_forced():
+            board.set_train(self.index)
 
     def play(self, board):
         if self.needs_to_update_sequence or board.has_train(self.index):
             print("%s is updating sequence" % self.name)
             self.update_sequence(board)
-
         if board.is_forced():
             print("%s is forced" % self.name)
             self.play_forced(board)
@@ -167,9 +147,18 @@ class SimpleAIPlayer(Player):
             print("%s is playing on their row, only one chip" % self.name)
             self.play_self(board)
         else:
-            print("%s is playing elsewhere, probably at a cost" % self.name)
-            self.play_any(board)
+            if self.can_play_self(board):
+                raise Exception("What's going on?")
+            print("%s is playing elsewhere, at a cost" % self.name)
+            self.play_cheaply_elsewhere(board)
         self.end_turn(board)
+
+    def can_play_self(self, board):
+        for position in board.get_row(self.index).get_open_positions():
+            for chip in self.chips:
+                if chip.__contains__(position):
+                    return True
+        return False
 
     def play_self(self, board):
         chip = self.chip_node_list.get_best_chip_to_play()
@@ -181,7 +170,6 @@ class SimpleAIPlayer(Player):
             if board.can_draw():
                 drawn_chip = board.draw()
                 self.add_chip(drawn_chip)
-                print("%s draws %s" % (self.name, drawn_chip))
                 if drawn_chip.__contains__(side_to_play):
                     print("The drawn chip is playable!")
                     self.play_chips(board, [drawn_chip], side_to_play, self.index)
@@ -349,17 +337,16 @@ class SimpleAIPlayer(Player):
                                 best_chip = current_chip
                                 best_side = position
 
+        # Resolve lone double
         if best_chip[0].is_double() and len(best_chip) == 1:
             must_set_train = True
             if board.can_draw():
                 drawn_chip = board.draw()
                 self.add_chip(drawn_chip)
-                print("%s draws: %s" % (self.name, drawn_chip))
                 if drawn_chip.__contains__(best_side):
                     best_chip.append(drawn_chip)
                     must_set_train = False
             if must_set_train:
-                self.needs_to_update_sequence = True
                 board.set_forced(best_row, best_side, self.index)
                 board.set_train(self.index)
 

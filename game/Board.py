@@ -76,13 +76,7 @@ class Board:
              "\nPlayers: %s" % len(self.rows),
              "\nChips in draw pile: %s" % len(self.draw_pile)]
         for row in self.rows:
-            s.append("\nRow %s has these open positions: " % row.get_name())
-            s.append(row.__str__())
-            s.append("and ")
-            if row.has_train():
-                s.append("has train")
-            else:
-                s.append("doesn't have train")
+            s.append("\n%s" % row.__str__())
         if self.forced:
             s.append("\nAnd board is forced to row " + self.forced_row.__str__())
             s.append("\nOn numbers " + self.forced_numbers.__str__())

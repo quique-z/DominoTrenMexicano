@@ -18,9 +18,27 @@ for i in range(10):
         historic_winners[player] += 1
 
 print(historic_winners)
-
-
 """
+
+chips = []
+chips.append(Chip(3, 7))
+chips.append(Chip(0, 5))
+chips.append(Chip(1, 2))
+chips.append(Chip(6, 9))
+chips.append(Chip(7, 12))
+chips.append(Chip(9, 11))
+chips.append(Chip(6, 6))
+chips.append(Chip(3, 3))
+chips.append(Chip(4, 4))
+chips.append(Chip(7, 10))
+chips.append(Chip(12, 12))
+chips.append(Chip(1, 10))
+
+cs = generate_sequence([7], chips, 7, 0.99)
+for chip in cs.get_chipset():
+    print(chip)
+    
+
 pool = create_chips(12)
 random.shuffle(pool)
 chips = []
