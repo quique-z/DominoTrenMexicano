@@ -44,4 +44,6 @@ class Row:
         s = ["%s row's contents: " % self.name]
         for i in self.open_positions:
             s.append("%s " % i)
+        if self.train:
+            s.append("and has train")
         return ''.join(s)

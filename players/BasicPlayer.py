@@ -114,7 +114,7 @@ class Player:
                                     board.play_chip(drawn_chip, open_number, row.get_index())
                                 else:
                                     board.set_forced(row.get_index(), open_number, self.index)
-                        return
+                            return
 
     def play_forced(self, board):
         row = board.get_forced_row()
