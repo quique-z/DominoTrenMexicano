@@ -1,11 +1,11 @@
 # Representation of what an average human player may play like. An average human is probably a bit better,
 # but this should be close enough for testing and training purposes
 
-from players.BasicPlayer import Player
+from players.BasicCPUPlayer import Player
 from ai.SequenceGeneration import *
 
 
-class SimpleAIPlayer(Player):
+class SimpleCPUPlayer(Player):
     def __init__(self, index, name=None):
         super().__init__(index, name)
         self.chip_node_list = None

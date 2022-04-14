@@ -1,7 +1,8 @@
-from players.BasicPlayer import Player
-from players.SimpleAIPlayer import SimpleAIPlayer
-from game.ChipFactory import *
+from players.HeuristicAIPlayer import HeuristicAIPlayer
+from players.SimpleCPUPlayer import SimpleCPUPlayer
+from players.BasicCPUPlayer import Player
 from game.Board import Board
+from game import ChipFactory
 import random
 import math
 import time
@@ -9,7 +10,7 @@ import time
 
 class GameManager:
 
-    def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py, player_names=[]):
+    def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py, heuristic_py, player_names=[]):
         if len(player_names) == 0:
             for i in basic_py + simple_py:
                 player_names.append(i.__str__())
@@ -17,22 +18,24 @@ class GameManager:
         self.n_chips_per_player = n_chips_per_player
         self.highest_double = highest_double
         self.current_double = initial_double
+        self.n_players = basic_py + simple_py + heuristic_py
         self.board = None
-        self.turn = 0
+        self.turn = random.randrange(self.n_players)
         self.endgame = False
         self.global_winner = []
-        self.n_players = basic_py + simple_py
         self.endgame_countdown = self.n_players
         self.player_names = player_names
         players = []
         for i in range(basic_py):
             players.append(Player(i, player_names[i]))
         for i in range(basic_py, self.n_players):
-            players.append(SimpleAIPlayer(i, player_names[i]))
+            players.append(SimpleCPUPlayer(i, player_names[i]))
+        for i in range(basic_py + simple_py, self.n_players):
+            players.append(HeuristicAIPlayer(i, player_names[i]))
         self.players = players
 
     def init_round(self):
-        self.chips = create_chips(self.highest_double, self.current_double)
+        self.chips = ChipFactory.create_chips(self.highest_double, self.current_double)
         random.shuffle(self.chips)
 
         for player in self.players:

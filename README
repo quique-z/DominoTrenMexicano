@@ -1,29 +1,5 @@
-This project contains libraries to play "Domino de tren mexicano" vs. human or AI players.
+This project contains libraries to play "Dominó de tren mexicano" vs. human or AI players.
 
-The rules of the game are defined as follows:
+The rules for the game can be found (in Spanish) here: https://www.juegosdilemma.com/instrucciones-domino-tren-mexicano/
 
-Each game consists of several rounds. Usually 12.
-
-Each round places a double at the center of the board. The denomination of the double decreases until the double 0 chip is at the center, marking the last round.
-
-Each round has players draw some chips, usually 12, then they take turns playing one chip at a time. Each player gets their own row, and usually can only play chips in their lane.
-Once a player runs out of chips, they win the round. Ifthey are unable to play a chip, they must draw one from the pile. Chips are played in such a way that one of the numbers corresponds
-to the number on the last chip currently in the row. Chips with the same number on both sides are called doubles. Doubles have a special property, they are placed sideways. After a double,
-2 lanes form, causing the row to have an additional open spot to place chips in. This is usually convenient since it makes it easier to place chips in your row. However, after a double is played
-the player that placed it is forced to play an extra chip as a follow up. If the player is unable to do so, they must draw. If they draw an eligible chip, they must place it after the double,
-otherwise the player places their train and the next player is forced to play on that double. This continues until someone does have a chip to play or the draw pile runs dry.
-
-Whenever a player wins a round, the remaining players tally up the sum of the chips in their hands and add it to their total. Player with the lowest total at the end of the game wins.
-
-Each player has a lane. This means a path stemming from the center chip and growing towards the player. The path is grown by placing a chip on your lane. The chip is placed with a matching
-number facing the end of the lane, and a new number facing the player.
-The new number now becomes the end of the lane.
-
-Under normal circumstances players can only play on their lane, but they can also play on other player's lane if the other player has a train set. However, if a player has a train they
-cannot play on other's lanes until they remove the train.
-
-In any time you can't play a chip, be it that you were forced or otherwise, you draw a chip. If you can play the chip, play it normally. If you cannot play the chip, you end your turn by putting your train up.
-
-Whenever you place a chip in your lane and you have a train, you are allowed, but not forced to remove it.
-
-The double 0 chip has a value of 50, not 0. It is informally called "the soap".
+However, it is important to note that there are a plethora of house rules and variations. This project is currently tuned to play with the rules I play at home.

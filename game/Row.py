@@ -23,9 +23,6 @@ class Row:
         self.open_positions.append(n)
         self.is_empty = False
 
-    def remove_open_positions(self, n):
-        self.open_positions.remove(n)
-
     def swap_open_positions(self, remove, add):
         self.open_positions.remove(remove)
         self.open_positions.append(add)

@@ -1,25 +1,24 @@
 from game.GameManager import GameManager
-from ai.ChipNode import ChipNode
-from ai.SequenceGeneration import *
-from game.ChipFactory import *
-import random
-import time
 
-chips_to_draw = 12
+chips_to_draw = 7
 highest_double = 12
 initial_double = 12
-n_players = 4
+basic_py = 7
+simple_py = 1
+heuristic_py = 0
+n_players = basic_py + simple_py + heuristic_py
 historic_winners = [0] * n_players
+names = ["Pety", "Anel", "Abuela", "Titi", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
 
 for i in range(10):
-    game_manager = GameManager(chips_to_draw, highest_double, initial_double, 0, n_players, ["Pety", "Anel", "Abuela", "Titi"])
+    game_manager = GameManager(chips_to_draw, highest_double, initial_double, basic_py, simple_py, heuristic_py, names[:n_players])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1
 
 print(historic_winners)
-"""
 
+"""
 chips = []
 chips.append(Chip(3, 7))
 chips.append(Chip(0, 5))
