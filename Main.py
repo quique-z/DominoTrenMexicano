@@ -2,9 +2,15 @@ from fractions import Fraction
 
 from game.GameManager import GameManager
 
-a = Fraction(1, 3)
-# a = Fraction(a.numerator, a.denominator + 1)
-print(a * 2)
+old_chip_value = Fraction(1, 4)
+existing_chip_value = Fraction(1, 10)
+old_n_chips = 10
+new_n_chips = 9
+adjusted_value = existing_chip_value / (1 - old_chip_value)
+
+print(adjusted_value)
+# print((Fraction(1, 2) + 9*Fraction(1, 18)).__float__())
+
 """
 
 chips_to_draw = 7

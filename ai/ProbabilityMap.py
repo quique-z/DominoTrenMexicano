@@ -39,30 +39,23 @@ class ProbabilityMap:
 
     def remove_chip_from_probability_map(self, chip):
         self.n_of_chips -= 1
-        self.probability_map.pop(chip)
-        self.decrease_denominator_on_all_chips()
+        probability_loss = self.probability_map.pop(chip)
+        self.adjust_probability_on_remaining_chips(probability_loss)
 
     def remove_number_from_probability_map(self, n):
         numbered_chips = ChipFactory.create_chips_with_specific_number(n, self.highest_double)
 
-        counter = 0
+        probability_loss = Fraction(0)
         for chip in numbered_chips:
             if self.probability_map.__contains__(chip):
-                self.probability_map.pop(chip)
-                counter += 1
+                probability_loss += self.probability_map.pop(chip)
+                self.n_of_chips -= 1
 
-        self.n_of_chips -= counter
-        self.decrease_denominator_on_all_chips(counter)
+        self.adjust_probability_on_remaining_chips(probability_loss)
 
-    # TODO: This is wrong, figure it out.
-    def decrease_denominator_on_all_chips(self, n=1):
+    def adjust_probability_on_remaining_chips(self, probability_loss):
         for key in self.probability_map.keys():
-            fraction = self.probability_map.get(key)
-            if fraction != 0:
-                numerator = fraction.numerator * self.n_of_chips
-                denominator = fraction.denominator * self.n_of_chips
-                fraction = Fraction(numerator, denominator - n)
-                self.probability_map[key] = fraction
+            self.probability_map[key] /= 1 - probability_loss
 
         self.sanity_check()
 
