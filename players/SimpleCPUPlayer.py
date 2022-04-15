@@ -1,8 +1,8 @@
 # Representation of what an average human player may play like. An average human is probably a bit better,
 # but this should be close enough for testing and training purposes
-
+from ai.SequenceGeneration import generate_sequence
 from players.BasicCPUPlayer import Player
-from ai.SequenceGeneration import *
+import math
 
 
 class SimpleCPUPlayer(Player):

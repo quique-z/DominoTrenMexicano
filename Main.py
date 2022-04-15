@@ -1,4 +1,11 @@
+from fractions import Fraction
+
 from game.GameManager import GameManager
+
+a = Fraction(1, 3)
+# a = Fraction(a.numerator, a.denominator + 1)
+print(a * 2)
+"""
 
 chips_to_draw = 7
 highest_double = 12
@@ -18,7 +25,7 @@ for i in range(10):
 
 print(historic_winners)
 
-"""
+
 chips = []
 chips.append(Chip(3, 7))
 chips.append(Chip(0, 5))

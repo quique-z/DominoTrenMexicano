@@ -13,5 +13,8 @@ def create_chips(highest_double, double_to_skip=-1):
 def create_chips_with_specific_number(number, highest_double):
     chips = []
     for i in range(highest_double + 1):
-        chips.append(Chip(number, i))
+        if i < number:
+            chips.append(Chip(i, number))
+        else:
+            chips.append(Chip(number, i))
     return chips
