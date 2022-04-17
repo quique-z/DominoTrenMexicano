@@ -1,16 +1,19 @@
 from fractions import Fraction
 
+from ai.ProbabilityMap import ProbabilityMap
+from game.Chip import Chip
 from game.GameManager import GameManager
 
-old_chip_value = Fraction(1, 4)
-existing_chip_value = Fraction(1, 10)
-old_n_chips = 10
-new_n_chips = 9
-adjusted_value = existing_chip_value / (1 - old_chip_value)
 
-print(adjusted_value)
-# print((Fraction(1, 2) + 9*Fraction(1, 18)).__float__())
+pm = ProbabilityMap(2, 0, True)
+# print(pm)
 
+new_map = pm.detach_sub_probability_map(2)
+pm.remove_chip_from_probability_map(Chip([0, 1]))
+pm.withdraw_chip_from_probability_map(Chip([1, 1]))
+
+
+print(pm)
 """
 
 chips_to_draw = 7

@@ -6,15 +6,15 @@ def create_chips(highest_double, double_to_skip=-1):
     for i in range(highest_double + 1):
         for j in range(i, highest_double + 1):
             if not (i == double_to_skip and j == double_to_skip):
-                chips.append(Chip(i, j))
+                chips.append(Chip([i, j]))
     return chips
 
 
-def create_chips_with_specific_number(number, highest_double):
+def create_chips_with_specific_numbers(numbers, highest_double):
     chips = []
-    for i in range(highest_double + 1):
-        if i < number:
-            chips.append(Chip(i, number))
-        else:
-            chips.append(Chip(number, i))
+    for number in numbers:
+        for i in range(highest_double + 1):
+            chip = Chip([i, number])
+            if not chips.__contains__(chip):
+                chips.append(chip)
     return chips

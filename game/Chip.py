@@ -1,13 +1,20 @@
 class Chip:
 
-    def __init__(self, a, b):
-        self.numbers = [a, b]
+    def __init__(self, numbers):
+        numbers.sort()
+        self.numbers = numbers
 
     def get_side_a(self):
         return self.numbers[0]
 
     def get_side_b(self):
         return self.numbers[1]
+
+    def get_sides(self):
+        if self.is_double():
+            return [self.get_side_a()]
+        else:
+            return self.numbers
 
     def get_other_side(self, n):
         if self.get_side_a() == n:
