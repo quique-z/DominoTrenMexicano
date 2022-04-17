@@ -5,3 +5,4 @@ class Heuristic:
         self.not_likely_to_have_chip_multiplier = 0.1
         self.play_chip_elsewhere_multiplier = 1.5
         self.penalty_for_playing_lone_double = 12
+        self.does_not_have_number_confidence = 0.1

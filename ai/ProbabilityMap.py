@@ -3,7 +3,7 @@ from game import ChipFactory
 
 
 class ProbabilityMap:
-    def __init__(self, highest_double, double_to_skip, is_initial_pool=False):
+    def __init__(self, name, highest_double, double_to_skip, is_initial_pool=False):
         self.numbers_in_existence = [highest_double + 1] * (highest_double + 1)
         self.max_numbers = [0] * (highest_double + 1)
         self.min_numbers = [0] * (highest_double + 1)
@@ -11,6 +11,7 @@ class ProbabilityMap:
         self.total_chip_weight = Fraction(0)
         self.probability_map = dict()
         self.n_of_chips = 0
+        self.name = name
 
         if is_initial_pool:
             for chip in ChipFactory.create_chips(highest_double, double_to_skip):
@@ -54,7 +55,7 @@ class ProbabilityMap:
         return 1 - inverse_probability
 
     def get_probability_for_number(self, n):
-        return self.get_probability_fraction_for_number().__float__()
+        return self.get_probability_fraction_for_number(n).__float__()
 
     def withdraw_chip_from_probability_map(self, chip):
         self.n_of_chips -= 1
@@ -94,7 +95,7 @@ class ProbabilityMap:
         self.total_chip_weight -= total_weight_loss
         return chips_weight_loss_map
 
-    def decrease_probability_from_number(self, numbers, ratio=0.1):
+    def decrease_probability_from_number(self, numbers, ratio):
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
         total_weight_loss = Fraction(0)
         chips_weight_loss_map = dict()
@@ -113,7 +114,7 @@ class ProbabilityMap:
             if self.probability_map.__contains__(key):
                 self.probability_map[key] /= 1 - chip_weight_loss_map[key]
 
-    def detach_sub_probability_map(self, n_chips=1):
+    def detach_sub_probability_map(self, n_chips):
         split_ratio = Fraction(n_chips, self.n_of_chips)
         new_probability_map = dict()
 
@@ -134,7 +135,7 @@ class ProbabilityMap:
         self.n_of_chips -= n_chips
         return [new_probability_map, detached_min_numbers, detached_max_numbers]
 
-    def incorporate_probability_map(self, probability_map, n_chips, min_numbers, max_numbers):
+    def incorporate_probability_map(self, n_chips, probability_map, min_numbers, max_numbers):
         self.n_of_chips += n_chips
 
         for number in range(self.highest_double + 1):
@@ -149,20 +150,20 @@ class ProbabilityMap:
                 inverse_probability = 1 - self.probability_map[key]
                 inverse_probability *= 1 - probability_map[key]
                 self.probability_map[key] = 1 - inverse_probability
-
             else:
                 self.probability_map[key] = probability_map[key]
             self.total_chip_weight += self.probability_map[key] - old_weight
 
     def __str__(self):
-        s = ["Number of chips: %s\n" % self.n_of_chips,
+        s = ["Probability map for: %s\n" % self.name,
+             "Number of chips: %s\n" % self.n_of_chips,
              "Total chip weight: %s\n" % self.total_chip_weight,
              "Probabilities for each chip are:\n"]
         for key in self.probability_map.keys():
-            s.append("%s, %s\n" % (key, self.get_probability_fraction_for_chip(key)))
+            s.append("%s, %s\n" % (key, self.get_probability_for_chip(key)))
         s.append("Probabilities for each number are: \n")
         for number in range(self.highest_double + 1):
-            s.append(("%s: %s\n" % (number, self.get_probability_fraction_for_number(number))))
+            s.append(("%s: %s\n" % (number, self.get_probability_for_number(number))))
         s.append("Max chips for each number are: %s\n" % self.max_numbers)
         s.append("Min chips for each number are: %s\n" % self.min_numbers)
         return ''.join(s)

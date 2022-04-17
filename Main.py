@@ -1,27 +1,17 @@
 from fractions import Fraction
 
+from ai.Heuristic import Heuristic
 from ai.ProbabilityMap import ProbabilityMap
+from ai.ProbabilityMapList import ProbabilityMapList
 from game.Chip import Chip
 from game.GameManager import GameManager
-
-
-pm = ProbabilityMap(2, 0, True)
-# print(pm)
-
-new_map = pm.detach_sub_probability_map(2)
-pm.remove_chip_from_probability_map(Chip([0, 1]))
-pm.withdraw_chip_from_probability_map(Chip([1, 1]))
-
-
-print(pm)
-"""
 
 chips_to_draw = 7
 highest_double = 12
 initial_double = 12
-basic_py = 7
-simple_py = 1
-heuristic_py = 0
+basic_py = 0
+simple_py = 5
+heuristic_py = 1
 n_players = basic_py + simple_py + heuristic_py
 historic_winners = [0] * n_players
 names = ["Pety", "Anel", "Abuela", "Titi", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
@@ -34,7 +24,7 @@ for i in range(10):
 
 print(historic_winners)
 
-
+"""
 chips = []
 chips.append(Chip(3, 7))
 chips.append(Chip(0, 5))

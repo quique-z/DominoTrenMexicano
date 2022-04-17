@@ -5,8 +5,11 @@ from ai.Heuristic import Heuristic
 
 
 class HeuristicAIPlayer(SimpleCPUPlayer):
-    def __init__(self, index, probability_maps, name=None):
+    def __init__(self, index, name=None):
         super().__init__(index, name)
-        self.probability_maps = probability_maps
+        self.probability_map_list = None
         self.heuristic = Heuristic()
+
+    def set_probability_map_list(self, pml):
+        self.probability_map_list = pml
 

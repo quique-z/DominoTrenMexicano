@@ -1,3 +1,5 @@
+from ai.Heuristic import Heuristic
+from ai.ProbabilityMapList import ProbabilityMapList
 from players.HeuristicAIPlayer import HeuristicAIPlayer
 from players.SimpleCPUPlayer import SimpleCPUPlayer
 from players.BasicCPUPlayer import Player
@@ -43,6 +45,9 @@ class GameManager:
             for i in range(self.n_chips_per_player):
                 chips.append(self.chips.pop())
             player.init_round(chips)
+            if type(player) is HeuristicAIPlayer:
+                pml = ProbabilityMapList(self.n_players, self.player_names, self.highest_double, self.current_double)
+                player.set_probability_map_list(pml)
 
         self.board = Board(len(self.players), self.current_double, self.chips, self.player_names)
         self.current_double -= 1
