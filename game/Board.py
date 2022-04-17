@@ -4,8 +4,7 @@ from game.Row import Row
 class Board:
 
     def __init__(self, n_players, center_chip_double, chips, player_names=[]):
-        self.player_names = []
-        if len(player_names) != n_players:
+        if not player_names:
             player_names = range(n_players)
 
         self.center_double = center_chip_double

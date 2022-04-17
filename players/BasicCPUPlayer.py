@@ -15,7 +15,7 @@ class Player:
         self.has_won = False
         self.eligible_to_win = False
 
-    def init_round(self, chips):
+    def init_round(self, chips, double_to_skip=None):
         self.chips = chips
         self.has_won = False
         self.eligible_to_win = False

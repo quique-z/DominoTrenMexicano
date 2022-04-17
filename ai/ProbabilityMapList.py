@@ -3,15 +3,23 @@ from ai.ProbabilityMap import ProbabilityMap
 
 class ProbabilityMapList:
 
-    def __init__(self, n_players, names, highest_double, double_to_skip):
-        self.probability_maps = []
-        self.n_players = n_players
+    def __init__(self, names, highest_double, n_chips_per_player):
+        self.n_chips_per_player = n_chips_per_player
+        self.highest_double = highest_double
+        self.probability_maps = None
+        self.n_players = len(names)
+        self.names = names
 
-        for i in range(n_players):
-            self.probability_maps.append(ProbabilityMap(names[i], highest_double, double_to_skip))
+    def init_round(self, double_to_skip):
+        self.probability_maps = []
+        for i in range(self.n_players):
+            pm = self.probability_maps.append(ProbabilityMap(self.names[i], self.highest_double, double_to_skip))
 
         # Initial Pool
-        self.probability_maps.append(ProbabilityMap("Draw Pool", highest_double, double_to_skip, True))
+        self.probability_maps.append(ProbabilityMap("Draw Pool", self.highest_double, double_to_skip, True))
+
+        for i in range(self.n_players):
+            self.player_draws_chips(i, self.n_chips_per_player)
 
     def get_possible_chips(self, index):
         return self.probability_maps[index].get_possible_chips()

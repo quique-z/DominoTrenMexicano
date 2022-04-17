@@ -1,5 +1,3 @@
-from ai.Heuristic import Heuristic
-from ai.ProbabilityMapList import ProbabilityMapList
 from players.HeuristicAIPlayer import HeuristicAIPlayer
 from players.SimpleCPUPlayer import SimpleCPUPlayer
 from players.BasicCPUPlayer import Player
@@ -16,24 +14,24 @@ class GameManager:
         if len(player_names) == 0:
             for i in basic_py + simple_py:
                 player_names.append(i.__str__())
-        self.chips = []
+        self.n_players = basic_py + simple_py + heuristic_py
         self.n_chips_per_player = n_chips_per_player
+        self.turn = random.randrange(self.n_players)
+        self.endgame_countdown = self.n_players
         self.highest_double = highest_double
         self.current_double = initial_double
-        self.n_players = basic_py + simple_py + heuristic_py
-        self.board = None
-        self.turn = random.randrange(self.n_players)
-        self.endgame = False
-        self.global_winner = []
-        self.endgame_countdown = self.n_players
         self.player_names = player_names
+        self.global_winner = []
+        self.endgame = False
+        self.board = None
+        self.chips = []
         players = []
         for i in range(basic_py):
             players.append(Player(i, player_names[i]))
-        for i in range(basic_py, self.n_players):
+        for i in range(len(players), len(players) + simple_py):
             players.append(SimpleCPUPlayer(i, player_names[i]))
-        for i in range(basic_py + simple_py, self.n_players):
-            players.append(HeuristicAIPlayer(i, player_names[i]))
+        for i in range(len(players), len(players) + heuristic_py):
+            players.append(HeuristicAIPlayer(i, player_names, highest_double, n_chips_per_player))
         self.players = players
 
     def init_round(self):
@@ -44,10 +42,7 @@ class GameManager:
             chips = []
             for i in range(self.n_chips_per_player):
                 chips.append(self.chips.pop())
-            player.init_round(chips)
-            if type(player) is HeuristicAIPlayer:
-                pml = ProbabilityMapList(self.n_players, self.player_names, self.highest_double, self.current_double)
-                player.set_probability_map_list(pml)
+            player.init_round(chips, self.current_double)
 
         self.board = Board(len(self.players), self.current_double, self.chips, self.player_names)
         self.current_double -= 1

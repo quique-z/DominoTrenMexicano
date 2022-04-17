@@ -373,7 +373,7 @@ class SimpleCPUPlayer(Player):
             self.chips.remove(chip)
             print("%s plays %s on row %s" % (chip, self.name, board.get_row(row).get_name()))
 
-    def init_round(self, chips):
+    def init_round(self, chips, double_to_skip=None):
         super().init_round(chips)
         self.needs_to_update_sequence = True
 
