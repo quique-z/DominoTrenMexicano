@@ -92,7 +92,7 @@ class GameManager:
         can_play = self.players[self.turn].can_play(self.board)
 
         if not can_play and self.board.can_draw():
-            self.players[self.turn].add_chip(self.board.draw())
+            self.players[self.turn].add_chip(self.board.draw(self.turn))
             can_play = self.players[self.turn].can_play(self.board)
 
         if can_play:

@@ -105,7 +105,8 @@ class SimpleCPUPlayer(Player):
         if not board.is_forced():
             board.remove_train(self.index)
 
-    def play_first(self, board):
+    def play_first(self, board, play_all=False):
+        # for i in range(self.chip_node_list.get_chipset_length()):
         while self.chip_node_list.has_chip_to_play():
             cn = self.chip_node_list.get_best_chip_to_play()
             chips = cn.get_next_piece()
@@ -115,13 +116,15 @@ class SimpleCPUPlayer(Player):
                     board.set_forced(self.index, chip.get_side_a(), self.index)
 
         if board.is_forced():
+            board.set_numbers_player_does_not_have(self.index, set(board.get_forced_numbers()))
             if board.can_draw():
-                drawn_chip = board.draw()
+                drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
                 for number in board.get_forced_numbers():
                     if drawn_chip.__contains__(number):
                         self.play_chips(board, [drawn_chip], number, self.index)
                         board.remove_forced(number)
+                        break  # This could cause issues?
 
         if board.is_forced():
             board.set_train(self.index)
@@ -135,7 +138,7 @@ class SimpleCPUPlayer(Player):
             self.play_forced(board)
         elif self.can_play_all_my_chips_if_i_play_many(board):
             print("%s is playing all their chips" % self.name)
-            self.play_first(board)
+            self.play_first(board, True)
         # TODO: Danger of someone else winning is not taken into consideration yet.
         elif self.can_play_cheaply_elsewhere(board):
             print("%s is playing elsewhere" % self.name)
@@ -167,8 +170,9 @@ class SimpleCPUPlayer(Player):
 
         if chip.is_chip_double() and len(chip.get_next_piece()) == 1:
             print("%s played a double but has no second chip" % self.name)
+            board.set_numbers_player_does_not_have(self.index, [side_to_play])
             if board.can_draw():
-                drawn_chip = board.draw()
+                drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
                 if drawn_chip.__contains__(side_to_play):
                     print("The drawn chip is playable!")
@@ -339,9 +343,10 @@ class SimpleCPUPlayer(Player):
 
         # Resolve lone double
         if best_chip[0].is_double() and len(best_chip) == 1:
+            board.set_numbers_player_does_not_have(self.index, [best_side])
             must_set_train = True
             if board.can_draw():
-                drawn_chip = board.draw()
+                drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
                 if drawn_chip.__contains__(best_side):
                     best_chip.append(drawn_chip)

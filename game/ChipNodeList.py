@@ -48,6 +48,9 @@ class ChipNodeList:
         if tail is not None:
             self.chip_nodes.extend(tail)
 
+    def get_chipset_length(self):
+        return len(self.get_chipset())
+
     def get_chipset(self):
         chipset = []
         for cn in self.chip_nodes:

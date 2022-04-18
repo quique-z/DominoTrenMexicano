@@ -27,7 +27,7 @@ class Player:
                 print("%s says: One!" % self.name)
             elif board.can_draw():
                 print("%s intentionally skips saying \"One\"")
-                self.add_chip(board.draw())
+                self.add_chip(board.draw(self.index))
 
         elif len(self.chips) == 0:
             if board.get_forced_culprit() == self.index:
@@ -52,19 +52,27 @@ class Player:
             return self.can_play_any(board)
 
     def can_play_forced(self, board):
+        non_available_numbers = set()
         for number in board.get_forced_numbers():
             if self.can_play_number(number):
                 print("%s is forced and has a chip to play" % self.name)
                 return True
+            else:
+                non_available_numbers.add(number)
         print("%s is forced and doesn't have a chip to play" % self.name)
+        board.set_numbers_player_does_not_have(self.index, non_available_numbers)
         return False
 
     def can_play_any(self, board):
+        non_available_numbers = set()
         for row in board.get_rows():
             if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
                 for open_position in row.get_open_positions():
                     if self.can_play_number(open_position):
                         return True
+                    else:
+                        non_available_numbers.add(open_position)
+        board.set_numbers_player_does_not_have(self.index, non_available_numbers)
         return False
 
     def can_play_number(self, number):
@@ -105,8 +113,10 @@ class Player:
                                             board.play_chip(second_chip_to_play, open_number, row.get_index())
                                             print(self.name, " plays a second chip :", second_chip_to_play)
                                             return
+                                else:
+                                    board.set_numbers_player_does_not_have(self.index, [open_number])
                                 if board.can_draw():
-                                    drawn_chip = board.draw()
+                                    drawn_chip = board.draw(self.index)
                                     self.add_chip(drawn_chip)
                                     can_play = drawn_chip.__contains__(open_number)
                                 if can_play:
