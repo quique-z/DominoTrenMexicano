@@ -124,8 +124,8 @@ class GameManager:
         while self.has_next_round():
             self.init_round()
             while self.has_next_turn():
-                logging.info(self)
                 self.next_turn()
+                logging.info(self)
             self.end_round()
 
         logging.info(self)

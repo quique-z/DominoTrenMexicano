@@ -62,9 +62,6 @@ class ProbabilityMap:
             self.max_numbers[side] -= 1
             self.numbers_in_existence[side] -= 1
             self.min_numbers[side] = min(self.max_numbers[side], self.min_numbers[side])
-            # TODO: max might lower, if no other numbers have min > 0
-
-        return chip_weight
 
     def remove_chip_from_probability_map(self, chip):
         if not self.probability_map.__contains__(chip):
@@ -81,35 +78,33 @@ class ProbabilityMap:
             self.min_numbers[number] == 0  # Should be 0 anyway
 
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
-        total_weight_loss = Fraction(0)
         chips_weight_loss_map = dict()
 
         for chip in numbered_chips:
             if self.probability_map.__contains__(chip):
                 chips_weight_loss_map[chip] = self.probability_map.pop(chip)
-                total_weight_loss += chips_weight_loss_map[chip]
+                self.total_chip_weight -= chips_weight_loss_map[chip]
 
-        self.total_chip_weight -= total_weight_loss
         return chips_weight_loss_map
 
     def decrease_probability_from_number(self, numbers, ratio):
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
-        total_weight_loss = Fraction(0)
         chips_weight_loss_map = dict()
 
         for chip in numbered_chips:
             if self.probability_map.__contains__(chip):
                 chips_weight_loss_map[chip] = self.probability_map[chip] * (1 - ratio)
-                total_weight_loss += chips_weight_loss_map[chip]
+                self.total_chip_weight -= chips_weight_loss_map[chip]
                 self.probability_map[chip] *= ratio
 
-        self.total_chip_weight -= total_weight_loss
         return chips_weight_loss_map
 
     def adjust_probability_on_remaining_chips(self, chip_weight_loss_map):
         for key in chip_weight_loss_map:
             if self.probability_map.__contains__(key):
+                self.total_chip_weight -= self.probability_map[key]
                 self.probability_map[key] /= 1 - chip_weight_loss_map[key]
+                self.total_chip_weight += self.probability_map[key]
 
     def detach_sub_probability_map(self, n_chips):
         split_ratio = Fraction(n_chips, self.n_of_chips)
@@ -154,7 +149,7 @@ class ProbabilityMap:
     def __str__(self):
         s = ["Probability map for: %s\n" % self.name,
              "Number of chips: %s\n" % self.n_of_chips,
-             "Total chip weight: %s\n" % self.total_chip_weight,
+             "Total chip weight: %s\n" % self.total_chip_weight.__float__(),
              "Probabilities for each chip are:\n"]
         for key in self.probability_map.keys():
             s.append("%s, %s\n" % (key, self.get_probability_for_chip(key)))

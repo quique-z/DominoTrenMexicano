@@ -12,7 +12,7 @@ n_players = basic_py + simple_py + heuristic_py
 historic_winners = [0] * n_players
 names = ["Pety", "Anel", "Abuela", "AI", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
 
-for i in range(100):
+for i in range(1):
     game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, basic_py, simple_py, heuristic_py, names[:n_players])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
