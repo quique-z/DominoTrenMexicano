@@ -17,11 +17,11 @@ class ProbabilityMap:
             for chip in ChipFactory.create_chips(highest_double, double_to_skip):
                 self.probability_map[chip] = Fraction(1)
             # Nth +1 triangular number minus one for the double to skip
-            self.total_chip_weight = Fraction((highest_double + 2) * (highest_double + 1) / 2 - 1)
-            self.n_of_chips = self.total_chip_weight
+            self.n_of_chips = int((highest_double + 2) * (highest_double + 1) / 2 - 1)
             self.max_numbers = [highest_double + 1] * (highest_double + 1)
             self.min_numbers = [highest_double + 1] * (highest_double + 1)
             self.numbers_in_existence[double_to_skip] -= 1
+            self.total_chip_weight = Fraction(self.n_of_chips)
             self.max_numbers[double_to_skip] -= 1
             self.min_numbers[double_to_skip] -= 1
 
@@ -37,7 +37,7 @@ class ProbabilityMap:
     def get_probability_fraction_for_chip(self, chip):
         if self.n_of_chips == 0 or not self.probability_map.__contains__(chip):
             return Fraction(0)
-        return self.probability_map[chip] * self.n_of_chips / self.total_chip_weight
+        return self.probability_map[chip]
 
     def get_probability_fraction_for_number(self, n):
         if self.min_numbers[n] > 0:
@@ -54,14 +54,28 @@ class ProbabilityMap:
 
         return 1 - inverse_probability
 
+    def refactor_probabilities(self, weight_loss_ratio):
+        if weight_loss_ratio == 1:
+            return None
+        chip_weight_gain_map = dict()
+        for key in self.probability_map.keys():
+            old_chip_weight = -self.probability_map[key]
+            self.probability_map[key] /= 1 - weight_loss_ratio
+            chip_weight_gain_map[key] = self.probability_map[key] - old_chip_weight
+
+        return chip_weight_gain_map
+
     def withdraw_chip_from_probability_map(self, chip):
         self.n_of_chips -= 1
         chip_weight = self.probability_map.pop(chip)
         self.total_chip_weight -= chip_weight
+        weight_loss_ratio = chip_weight / self.n_of_chips  # Might be 1?
         for side in chip.get_sides():
             self.max_numbers[side] -= 1
             self.numbers_in_existence[side] -= 1
             self.min_numbers[side] = min(self.max_numbers[side], self.min_numbers[side])
+
+        return self.refactor_probabilities(weight_loss_ratio)
 
     def remove_chip_from_probability_map(self, chip):
         if not self.probability_map.__contains__(chip):
