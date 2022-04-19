@@ -1,6 +1,6 @@
 # Very basic player. Follows the rules but literally plays the first chip available regardless of how good of a move
 # that ends up being. Mostly for debugging purposes, inheritance or for flexing an AI against it.
-
+import logging
 
 class Player:
 
@@ -32,18 +32,18 @@ class Player:
         elif len(self.chips) == 0:
             if board.get_forced_culprit() == self.index:
                 self.eligible_to_win = True
-                print("%s is out of chips but the board is forced because of them, so they can't win yet." % self.name)
+                logging.info("%s is out of chips but the board is forced because of them, so they can't win yet." % self.name)
             else:
                 self.has_won = True
-                print("%s wins this round!" % self.name)
+                logging.info("%s wins this round!" % self.name)
 
     def add_chip(self, chip):
         self.chips.append(chip)
-        print("%s draws: %s" % (self.name, chip.__str__()))
+        logging.info("%s draws: %s" % (self.name, chip.__str__()))
 
     def can_play(self, board):
         if self.chips is None or len(self.chips) == 0:
-            print("%s doesn't have chips, but it is their turn." % self.name)
+            logging.info("%s doesn't have chips, but it is their turn." % self.name)
             return False
 
         if board.is_forced():
@@ -55,11 +55,11 @@ class Player:
         non_available_numbers = set()
         for number in board.get_forced_numbers():
             if self.can_play_number(number):
-                print("%s is forced and has a chip to play" % self.name)
+                logging.info("%s is forced and has a chip to play" % self.name)
                 return True
             else:
                 non_available_numbers.add(number)
-        print("%s is forced and doesn't have a chip to play" % self.name)
+        logging.info("%s is forced and doesn't have a chip to play" % self.name)
         board.set_numbers_player_does_not_have(self.index, non_available_numbers)
         return False
 
@@ -82,9 +82,9 @@ class Player:
         return False
 
     def play(self, board):
-        print("%s plays: " % self.name)
+        logging.info("%s plays: " % self.name)
         if board.is_forced():
-            print("%s is forced" % self.name)
+            logging.info("%s is forced" % self.name)
             self.play_forced(board)
         elif board.get_row(self.index).can_play_many():
             self.play_first(board)
@@ -100,9 +100,9 @@ class Player:
                         if chip.__contains__(open_number):
                             chip_to_play = chip
                             self.chips.remove(chip)
-                            board.play_chip(chip_to_play, open_number, row.get_index())
+                            board.play_chip(chip_to_play, open_number, row.get_index(), self.index)
                             board.remove_train(self.index)
-                            print(self.name, " plays :", chip_to_play)
+                            logging.info(self.name, " plays :", chip_to_play)
                             if chip_to_play.is_double():
                                 can_play = self.can_play_number(open_number)
                                 if can_play:
@@ -110,8 +110,8 @@ class Player:
                                         if second_chip.__contains__(open_number):
                                             second_chip_to_play = second_chip
                                             self.chips.remove(second_chip)
-                                            board.play_chip(second_chip_to_play, open_number, row.get_index())
-                                            print(self.name, " plays a second chip :", second_chip_to_play)
+                                            board.play_chip(second_chip_to_play, open_number, row.get_index(), self.index)
+                                            logging.info(self.name, " plays a second chip :", second_chip_to_play)
                                             return
                                 else:
                                     board.set_numbers_player_does_not_have(self.index, [open_number])
@@ -121,8 +121,9 @@ class Player:
                                     can_play = drawn_chip.__contains__(open_number)
                                 if can_play:
                                     self.chips.remove(drawn_chip)
-                                    board.play_chip(drawn_chip, open_number, row.get_index())
+                                    board.play_chip(drawn_chip, open_number, row.get_index(), self.index)
                                 else:
+                                    board.set_numbers_player_does_not_have(self.index, [open_number])
                                     board.set_forced(row.get_index(), open_number, self.index)
                             return
 
@@ -132,16 +133,16 @@ class Player:
             for chip in self.chips:
                 if chip.__contains__(number):
                     chip_to_play = chip
-                    print("%s plays :%s" % (self.name, chip_to_play))
+                    logging.info("%s plays :%s" % (self.name, chip_to_play))
                     self.chips.remove(chip)
-                    board.play_chip(chip_to_play, number, row)
+                    board.play_chip(chip_to_play, number, row, self.index)
                     board.remove_forced(number)
                     if not board.is_forced and row == self.index:
                         board.remove_train(self.index)
                     return
 
     def get_current_points(self):
-        if self.chips is None or len(self.chips) == 0:
+        if len(self.chips) == 0:
             return 0
         total = 0
         for chip in self.chips:
@@ -174,6 +175,9 @@ class Player:
 
     def get_index(self):
         return self.index
+
+    def init_turn(self, board):
+        board.clear_history(self.index)
 
     def __str__(self):
         s = ["Name: %s" % self.name,

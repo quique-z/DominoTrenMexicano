@@ -1,67 +1,25 @@
-from fractions import Fraction
-
-from ai.Heuristic import Heuristic
-from ai.ProbabilityMap import ProbabilityMap
-from ai.ProbabilityMapList import ProbabilityMapList
-from game.Chip import Chip
 from game.GameManager import GameManager
+import logging
+logging.info = print
 
-chips_to_draw = 7
-highest_double = 12
-initial_double = 12
+chips_to_draw = [12, 12, 12, 12, 5, 10, 10, 8, 8, 7, 7]
+highest_double = 6
+initial_double = highest_double
 basic_py = 0
-simple_py = 5
+simple_py = 3
 heuristic_py = 1
 n_players = basic_py + simple_py + heuristic_py
 historic_winners = [0] * n_players
-names = ["Pety", "Anel", "Abuela", "Titi", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
+names = ["Pety", "Anel", "Abuela", "AI", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
 
-for i in range(10):
-    game_manager = GameManager(chips_to_draw, highest_double, initial_double, basic_py, simple_py, heuristic_py, names[:n_players])
+for i in range(100):
+    game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, basic_py, simple_py, heuristic_py, names[:n_players])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1
-
 print(historic_winners)
 
 """
-chips = []
-chips.append(Chip(3, 7))
-chips.append(Chip(0, 5))
-chips.append(Chip(1, 2))
-chips.append(Chip(6, 9))
-chips.append(Chip(7, 12))
-chips.append(Chip(9, 11))
-chips.append(Chip(6, 6))
-chips.append(Chip(3, 3))
-chips.append(Chip(4, 4))
-chips.append(Chip(7, 10))
-chips.append(Chip(12, 12))
-chips.append(Chip(1, 10))
-
-cs = generate_sequence([7], chips, 7, 0.99)
-for chip in cs.get_chipset():
-    print(chip)
-    
-
-pool = create_chips(12)
-random.shuffle(pool)
-chips = []
-for i in range(10):
-            chip = pool.pop()
-            chips.append(chip)
-
-for chip in chips:
-    print(chip)
-cs = generate_sequence([12,0], chips, 12.55, 0.99)
-
-print("Sequence")
-
-for chip in cs.get_chipset():
-    print(chip)
-
-
-
 for j in range(5, 25):
     total_time = 0
     max_time = -math.inf
@@ -84,6 +42,5 @@ for j in range(5, 25):
             max_time = run_time
         if run_time < min_time:
             min_time = run_time
-    print("Tiempo promedio en ordenar %s fichas es: " % j + "{:.0f}".format(total_time/100) + " ms. Max y min son %s ms y %s ms" % (max_time, min_time))
-
+    print("Average time to order %s chips is: " % j + "{:.0f}".format(total_time/100) + " ms. Max and Min are %s ms and %s ms" % (max_time, min_time))
 """

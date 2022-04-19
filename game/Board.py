@@ -6,8 +6,7 @@ class Board:
     def __init__(self, n_players, center_chip_double, chips, player_names=[]):
         if not player_names:
             player_names = range(n_players)
-        self.list_of_numbers_players_do_not_have = []
-        self.players_who_drew = [0] * n_players
+        self.player_move_history = [[]] * n_players
         self.center_double = center_chip_double
         self.draw_pile = chips
         self.forced = False
@@ -17,13 +16,13 @@ class Board:
         self.rows = []
         for i in range(n_players):
             self.rows.append(Row(i, center_chip_double, player_names[i]))
-            self.list_of_numbers_players_do_not_have.append(set())
 
-    def play_chip(self, chip_to_play, side_to_play, row):
+    def play_chip(self, chip_to_play, side_to_play, row_to_play, player):
+        self.set_chip_played_by_player(player, chip_to_play)
         if chip_to_play.is_double():
-            self.rows[row].add_open_positions(side_to_play)
+            self.rows[row_to_play].add_open_positions(side_to_play)
         else:
-            self.rows[row].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
+            self.rows[row_to_play].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
 
     def set_forced(self, row, number, culprit):
         self.forced = True
@@ -39,20 +38,20 @@ class Board:
             self.forced_row = -1
             self.forced_culprit = -1
 
+    def get_move_history(self, index):
+        return self.player_move_history[index]
+
+    def clear_history(self, index):
+        self.player_move_history[index] = []
+
     def set_numbers_player_does_not_have(self, index, numbers):
-        self.list_of_numbers_players_do_not_have[index] = self.list_of_numbers_players_do_not_have[index].union(numbers)
+        self.player_move_history[index].append(["Numbers", numbers])
 
-    def get_numbers_players_do_not_have(self):
-        return self.list_of_numbers_players_do_not_have
+    def set_chip_played_by_player(self, index, chip):
+        self.player_move_history[index].append(["Chip", chip])
 
-    def clear_numbers_player_does_not_have(self, index):
-        self.list_of_numbers_players_do_not_have[index] = set()
-
-    def get_players_who_drew(self):
-        return self.players_who_drew
-
-    def clear_players_who_drew(self, index):
-        self.players_who_drew[index] = 0
+    def set_player_drew_chip(self, index):
+        self.player_move_history[index].append(["Draw", 1])
 
     def is_forced(self):
         return self.forced
@@ -76,7 +75,7 @@ class Board:
         return len(self.draw_pile) > 0
 
     def draw(self, player_index):
-        self.players_who_drew[player_index] += 1
+        self.set_player_drew_chip(player_index)
         return self.draw_pile.pop()
 
     def set_train(self, index):

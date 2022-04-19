@@ -1,3 +1,5 @@
+import logging
+
 from players.HeuristicAIPlayer import HeuristicAIPlayer
 from players.SimpleCPUPlayer import SimpleCPUPlayer
 from players.BasicCPUPlayer import Player
@@ -89,6 +91,7 @@ class GameManager:
         return not self.players[self.previous_player_id()].is_round_winner()
 
     def next_turn(self):
+        self.players[self.turn].init_turn(self.board)
         can_play = self.players[self.turn].can_play(self.board)
 
         if not can_play and self.board.can_draw():
@@ -121,11 +124,11 @@ class GameManager:
         while self.has_next_round():
             self.init_round()
             while self.has_next_turn():
-                print(self)
+                logging.info(self)
                 self.next_turn()
             self.end_round()
 
-        print(self)
+        logging.info(self)
         print("{:.0f}".format(time.time() * 1000 - millis) + " ms")
 
         winners = []

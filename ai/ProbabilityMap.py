@@ -31,31 +31,28 @@ class ProbabilityMap:
     def get_probability_for_chip(self, chip):
         return self.get_probability_fraction_for_chip(chip).__float__()
 
+    def get_probability_for_number(self, n):
+        return self.get_probability_fraction_for_number(n).__float__()
+
     def get_probability_fraction_for_chip(self, chip):
-        if self.n_of_chips == 0:
+        if self.n_of_chips == 0 or not self.probability_map.__contains__(chip):
             return Fraction(0)
-        if self.probability_map.__contains__(chip):
-            return self.probability_map[chip] * self.n_of_chips / self.total_chip_weight
-        return Fraction(0)
+        return self.probability_map[chip] * self.n_of_chips / self.total_chip_weight
 
     def get_probability_fraction_for_number(self, n):
         if self.min_numbers[n] > 0:
-            return 1
+            return Fraction(1)
         elif self.max_numbers[n] == 0:
-            return 0
+            return Fraction(0)
 
         numbered_chips = ChipFactory.create_chips_with_specific_numbers([n], self.highest_double)
         inverse_probability = Fraction(1)
 
         for chip in numbered_chips:
             if self.probability_map.__contains__(chip):
-                chip_probability = self.get_probability_fraction_for_chip(chip)
-                inverse_probability *= 1 - chip_probability
+                inverse_probability *= 1 - self.get_probability_fraction_for_chip(chip)
 
         return 1 - inverse_probability
-
-    def get_probability_for_number(self, n):
-        return self.get_probability_fraction_for_number(n).__float__()
 
     def withdraw_chip_from_probability_map(self, chip):
         self.n_of_chips -= 1
@@ -166,4 +163,5 @@ class ProbabilityMap:
             s.append(("%s: %s\n" % (number, self.get_probability_for_number(number))))
         s.append("Max chips for each number are: %s\n" % self.max_numbers)
         s.append("Min chips for each number are: %s\n" % self.min_numbers)
+        s.append("Numbers in existence are: %s\n" % self.numbers_in_existence)
         return ''.join(s)
