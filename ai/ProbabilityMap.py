@@ -3,7 +3,7 @@ from game import ChipFactory
 
 
 class ProbabilityMap:
-    def __init__(self, name, highest_double, double_to_skip, is_initial_pool=False):
+    def __init__(self, index, name, highest_double, double_to_skip, is_initial_pool=False):
         self.numbers_in_existence = [highest_double + 1] * (highest_double + 1)
         self.max_numbers = [0] * (highest_double + 1)
         self.min_numbers = [0] * (highest_double + 1)
@@ -11,6 +11,7 @@ class ProbabilityMap:
         self.total_chip_weight = Fraction(0)
         self.probability_map = dict()
         self.n_of_chips = 0
+        self.index = index
         self.name = name
 
         if is_initial_pool:
@@ -24,6 +25,9 @@ class ProbabilityMap:
             self.total_chip_weight = Fraction(self.n_of_chips)
             self.max_numbers[double_to_skip] -= 1
             self.min_numbers[double_to_skip] -= 1
+
+    def get_index(self):
+        return self.index
 
     def get_possible_chips(self):
         return self.probability_map.keys()
@@ -57,48 +61,43 @@ class ProbabilityMap:
     def refactor_probabilities(self, chip_weight, chips_lost, chip_weight_gain_map=dict()):
         if chip_weight == 1:
             return None
+        if self.n_of_chips == 0:
+            self.probability_map = dict()
+            self.total_chip_weight = 0
+            return
+
         for key in self.probability_map.keys():
             old_chip_weight = self.probability_map[key]
             self.probability_map[key] /= 1 + (chips_lost - chip_weight) / self.n_of_chips
             chip_weight_gain_map[key] = self.probability_map[key] - old_chip_weight
             self.total_chip_weight += chip_weight_gain_map[key]
 
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
+        self.sanity_check()
         return chip_weight_gain_map
 
     def withdraw_chip_from_probability_map(self, chip):
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
-        self.n_of_chips -= 1
-        self.total_chip_weight -= 1
-        chip_weight = self.probability_map.pop(chip)
+        self.sanity_check()
+
         for side in chip.get_sides():
             self.max_numbers[side] -= 1
             self.numbers_in_existence[side] -= 1
             self.min_numbers[side] = min(self.max_numbers[side], self.min_numbers[side])
 
-        return self.refactor_probabilities(chip_weight, 1)
+        chip_weight = self.probability_map.pop(chip)
+        self.n_of_chips -= 1
+        self.total_chip_weight -= chip_weight
+
+        tmp = self.refactor_probabilities(chip_weight, 1)
+
+        self.sanity_check()
+
+        return tmp
 
     def remove_chip_from_probability_map(self, chip):
         if not self.probability_map.__contains__(chip):
             return
 
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
+        self.sanity_check()
 
         chip_weight = self.probability_map.pop(chip)
         self.total_chip_weight -= chip_weight
@@ -108,24 +107,12 @@ class ProbabilityMap:
 
         tmp = self.refactor_probabilities(chip_weight, 0)
 
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
+        self.sanity_check()
 
         return tmp
 
     def remove_numbers_from_probability_map(self, numbers):
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
+        self.sanity_check()
 
         for number in numbers:
             self.max_numbers[number] == 0
@@ -133,23 +120,12 @@ class ProbabilityMap:
 
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
         chip_weight_map = dict()
-        total_weight = 0
         for chip in numbered_chips:
-            if self.probability_map.__contains__(chip):
-                chip_weight_map[chip] = self.probability_map.pop(chip)
-                total_weight += chip_weight_map[chip]
+            chip_weight_map[chip] = self.remove_chip_from_probability_map(chip)
 
-        self.total_chip_weight += total_weight
+        self.sanity_check()
 
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
-        total = 0
-        for key in self.probability_map.keys():
-            total += self.probability_map[key]
-        if total != self.n_of_chips:
-            raise Exception("Hi")
-
-        return self.refactor_probabilities(total_weight, 0, chip_weight_map)
+        return chip_weight_map
 
     def decrease_probability_from_number(self, numbers, ratio):
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
@@ -171,8 +147,8 @@ class ProbabilityMap:
                 self.total_chip_weight += self.probability_map[key]
 
     def detach_sub_probability_map(self, n_chips):
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
+        self.sanity_check()
+
         split_ratio = Fraction(n_chips, self.n_of_chips)
         new_probability_map = dict()
 
@@ -191,13 +167,12 @@ class ProbabilityMap:
             self.max_numbers[number] = min(self.max_numbers[number], self.n_of_chips)
 
         self.n_of_chips -= n_chips
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
+        self.sanity_check()
+
         return [new_probability_map, detached_min_numbers, detached_max_numbers]
 
     def incorporate_probability_map(self, n_chips, probability_map, min_numbers, max_numbers):
-        if self.n_of_chips != self.total_chip_weight:
-            raise Exception("Hi")
+        self.sanity_check()
         self.n_of_chips += n_chips
 
         for number in range(self.highest_double + 1):
@@ -211,7 +186,16 @@ class ProbabilityMap:
                 self.probability_map[key] += probability_map[key]
             else:
                 self.probability_map[key] = probability_map[key]
+
+        self.sanity_check()
+
+    def sanity_check(self):
         if self.n_of_chips != self.total_chip_weight:
+            raise Exception("Hi")
+        total = 0
+        for key in self.probability_map.keys():
+            total += self.probability_map[key]
+        if total != self.n_of_chips:
             raise Exception("Hi")
 
     def __str__(self):

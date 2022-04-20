@@ -17,10 +17,10 @@ class ProbabilityMapList:
     def init_round(self, chips, double_to_skip):
         self.probability_maps = []
         for i in range(self.n_players):
-            self.probability_maps.append(ProbabilityMap(self.names[i], self.highest_double, double_to_skip))
+            self.probability_maps.append(ProbabilityMap(i, self.names[i], self.highest_double, double_to_skip))
 
         # Initial Pool
-        self.probability_maps.append(ProbabilityMap("Draw Pool", self.highest_double, double_to_skip, True))
+        self.probability_maps.append(ProbabilityMap(self.n_players, "Draw Pool", self.highest_double, double_to_skip, True))
 
         # Remove my chips from pool
         for chip in chips:
@@ -43,42 +43,33 @@ class ProbabilityMapList:
         return self.probability_maps[index].get_probability_for_number(n)
 
     def chip_was_played_by_player(self, index, chip):
-        if index == self.my_player_index:
-            self.chip_was_seen(chip)
-        for i in range(len(self.probability_maps)):
-            if i == index:
-                self.probability_maps[i].withdraw_chip_from_probability_map(chip)
+        for pm in self.probability_maps:
+            if pm.get_index() == index:
+                pm.withdraw_chip_from_probability_map(chip)
             else:
-                self.probability_maps[i].remove_chip_from_probability_map(chip)
+                pm.remove_chip_from_probability_map(chip)
         self.sanity_check()
 
     def remove_numbers_from_probability_map(self, index, numbers):
-        if True:
-            pass
-        else:
-            if index == self.my_player_index:
-                return
-            chip_weight_loss_map = self.probability_maps[index].remove_numbers_from_probability_map(numbers)
+        chip_weight_loss_map = self.probability_maps[index].remove_numbers_from_probability_map(numbers)
 
-            for i in range(len(self.probability_maps)):
-                if i != index:
-                    self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
-            self.sanity_check()
+        for i in range(len(self.probability_maps)):
+            if i != index:
+                self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
+        self.sanity_check()
 
     def decrease_probability_from_number(self, index, numbers, not_likely_to_have_chip_ratio):
         self.probability_maps[index].decrease_probability_from_number(numbers, not_likely_to_have_chip_ratio)
         self.sanity_check()
 
     def player_draws_chips(self, index, n_chips=1):
-        if index != self.my_player_index:
-            [pm, min_n, max_n] = self.probability_maps[-1].detach_sub_probability_map(n_chips)
-            self.probability_maps[index].incorporate_probability_map(n_chips, pm, min_n, max_n)
+        [pm, min_n, max_n] = self.probability_maps[-1].detach_sub_probability_map(n_chips)
+        self.probability_maps[index].incorporate_probability_map(n_chips, pm, min_n, max_n)
         self.sanity_check()
 
-    def chip_was_seen(self, chip):
-        for pm in self.probability_maps:
-            pm.remove_chip_from_probability_map(chip)
-        self.sanity_check()
+    def chip_was_drawn_by_ai(self, chip):
+        # Having the AI player whose PML this is draw and see a chip is equivalent (in probabilistic terms) to "the draw pile" playing a chip.
+        self.chip_was_played_by_player(self.n_players, chip)
 
     def sanity_check(self):
         chips = ChipFactory.create_chips(self.highest_double)

@@ -25,13 +25,14 @@ class HeuristicAIPlayer(SimpleCPUPlayer):
                 if move[0] == "Chip":
                     self.probability_map_list.chip_was_played_by_player(mod_counter, move[1])
                 elif move[0] == "Numbers":
-                    self.probability_map_list.remove_numbers_from_probability_map(mod_counter, move[1])
+                    pass
+                    # self.probability_map_list.remove_numbers_from_probability_map(mod_counter, move[1])
                 elif move[0] == "Draw":
                     self.probability_map_list.player_draws_chips(mod_counter)
 
     def add_chip(self, chip):
         super().add_chip(chip)
-        self.probability_map_list.chip_was_seen(chip)
+        self.probability_map_list.chip_was_drawn_by_ai(chip)
 
     def __str__(self):
         s = [super().__str__(), self.probability_map_list.__str__()]
