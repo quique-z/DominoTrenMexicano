@@ -53,14 +53,17 @@ class ProbabilityMapList:
         self.sanity_check()
 
     def remove_numbers_from_probability_map(self, index, numbers):
-        if index == self.my_player_index:
-            return
-        chip_weight_loss_map = self.probability_maps[index].remove_numbers_from_probability_map(numbers)
+        if True:
+            pass
+        else:
+            if index == self.my_player_index:
+                return
+            chip_weight_loss_map = self.probability_maps[index].remove_numbers_from_probability_map(numbers)
 
-        for i in range(len(self.probability_maps)):
-            if i != index:
-                self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
-        self.sanity_check()
+            for i in range(len(self.probability_maps)):
+                if i != index:
+                    self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
+            self.sanity_check()
 
     def decrease_probability_from_number(self, index, numbers, not_likely_to_have_chip_ratio):
         self.probability_maps[index].decrease_probability_from_number(numbers, not_likely_to_have_chip_ratio)

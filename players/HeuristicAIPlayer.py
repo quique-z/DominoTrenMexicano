@@ -16,8 +16,9 @@ class HeuristicAIPlayer(SimpleCPUPlayer):
         self.probability_map_list.init_round(chips, double_to_skip)
 
     def init_turn(self, board):
+        super().init_turn(board)
+        # Cycles through all players starting after self.index, excluding self.index
         for i in range(self.n_players - 1):
-            # Cycles through all players starting after self.index, excluding self.index
             mod_counter = (self.index + i + 1) % self.n_players
             move_list = board.get_move_history(mod_counter)
             for move in move_list:
@@ -27,8 +28,6 @@ class HeuristicAIPlayer(SimpleCPUPlayer):
                     self.probability_map_list.remove_numbers_from_probability_map(mod_counter, move[1])
                 elif move[0] == "Draw":
                     self.probability_map_list.player_draws_chips(mod_counter)
-
-        super().init_turn(board)
 
     def add_chip(self, chip):
         super().add_chip(chip)
