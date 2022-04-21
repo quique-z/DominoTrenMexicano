@@ -60,11 +60,11 @@ class ProbabilityMapList:
 
     def player_draws_chips(self, index, n_chips=1):
         [pm, min_n, max_n] = self.probability_maps[-1].detach_sub_probability_map(n_chips)
-        self.probability_maps[index].incorporate_probability_map(n_chips, pm, min_n, max_n)
+        self.probability_maps[index].incorporate_sub_probability_map(n_chips, pm, min_n, max_n)
         self.sanity_check()
 
     def chip_was_drawn_by_ai(self, chip):
-        # Having the AI player whose PML this is draw and see a chip is equivalent (in probabilistic terms) to "the draw pile" playing a chip.
+        # Having the AI player whose PML this is draw and see a chip is equivalent (in probabilistic terms) to "the draw pile playing a chip".
         self.chip_was_played_by_player(self.n_players, chip)
 
     def sanity_check(self):
@@ -82,6 +82,6 @@ class ProbabilityMapList:
         s = ["\n"]
         for i in range(len(self.probability_maps)):
             if i != self.my_player_index:
-                s.append(self.probability_maps[i].__str__())
+                s.append("%s" % self.probability_maps[i].__str__())
         return ''.join(s)
 

@@ -1,3 +1,4 @@
+from collections import Counter
 from fractions import Fraction
 from game import ChipFactory
 
@@ -64,21 +65,23 @@ class ProbabilityMap:
             self.total_chip_weight = 0
             return dict()
 
-        new_chip_weight_gain_map = dict()
         rolling_weight_multiplier = None
+        new_chip_weight_gain_map = dict().fromkeys(self.probability_map.keys(), 0)
+
         for chip in chip_weight_gain_map.keys():
             if rolling_weight_multiplier is None:
                 rolling_weight_multiplier = chip_weight_gain_map[chip]
             else:
                 rolling_weight_multiplier /= 1 + (chips_lost - rolling_weight_multiplier) / self.n_of_chips
+
             for key in self.probability_map.keys():
                 old_chip_weight = self.probability_map[key]
                 self.probability_map[key] /= 1 + (chips_lost - rolling_weight_multiplier) / self.n_of_chips
-                new_chip_weight_gain_map[key] = self.probability_map[key] - old_chip_weight
-                self.total_chip_weight += new_chip_weight_gain_map[key]
+                new_chip_weight_gain_map[key] -= self.probability_map[key] - old_chip_weight
+                self.total_chip_weight += self.probability_map[key] - old_chip_weight
 
         self.sanity_check()
-        return chip_weight_gain_map
+        return new_chip_weight_gain_map
 
     def remove_chips_from_probability_map(self, chips, chips_lost):
         self.sanity_check()
@@ -93,8 +96,7 @@ class ProbabilityMap:
                 self.n_of_chips -= chips_lost
                 chip_weight_loss_map[chip] = self.probability_map.pop(chip)
                 self.total_chip_weight -= chip_weight_loss_map[chip]
-
-        tmp = merge_maps([chip_weight_loss_map, self.refactor_probabilities(chip_weight_loss_map, chips_lost)], False)
+        tmp = merge_maps([chip_weight_loss_map, self.refactor_probabilities(chip_weight_loss_map, chips_lost)])
         self.sanity_check()
         return tmp
 
@@ -152,7 +154,7 @@ class ProbabilityMap:
         self.sanity_check()
         return [new_probability_map, detached_min_numbers, detached_max_numbers]
 
-    def incorporate_probability_map(self, n_chips, probability_map, min_numbers, max_numbers):
+    def incorporate_sub_probability_map(self, n_chips, probability_map, min_numbers, max_numbers):
         self.sanity_check()
         self.n_of_chips += n_chips
 
@@ -195,13 +197,12 @@ class ProbabilityMap:
         return ''.join(s)
 
 
-def merge_maps(probability_maps, is_addition=True):
-    plus_or_minus = is_addition * 2 - 1
+def merge_maps(probability_maps):
     merged_map = dict()
     for pm in probability_maps:
         for key in pm.keys():
             if merged_map.__contains__(key):
-                merged_map[key] += plus_or_minus * pm[key]
+                merged_map[key] += pm[key]
             else:
-                merged_map[key] = plus_or_minus * pm[key]
+                merged_map[key] = pm[key]
     return merged_map
