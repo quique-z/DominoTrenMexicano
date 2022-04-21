@@ -58,74 +58,56 @@ class ProbabilityMap:
 
         return 1 - inverse_probability
 
-    def refactor_probabilities(self, chip_weight, chips_lost, chip_weight_gain_map=dict()):
-        if chip_weight == 1:
-            return None
+    def refactor_probabilities(self, chip_weight_gain_map, chips_lost):
         if self.n_of_chips == 0:
             self.probability_map = dict()
             self.total_chip_weight = 0
-            return
+            return dict()
 
-        for key in self.probability_map.keys():
-            old_chip_weight = self.probability_map[key]
-            self.probability_map[key] /= 1 + (chips_lost - chip_weight) / self.n_of_chips
-            chip_weight_gain_map[key] = self.probability_map[key] - old_chip_weight
-            self.total_chip_weight += chip_weight_gain_map[key]
+        new_chip_weight_gain_map = dict()
+        rolling_weight_multiplier = None
+        for chip in chip_weight_gain_map.keys():
+            if rolling_weight_multiplier is None:
+                rolling_weight_multiplier = chip_weight_gain_map[chip]
+            else:
+                rolling_weight_multiplier /= 1 + (chips_lost - rolling_weight_multiplier) / self.n_of_chips
+            for key in self.probability_map.keys():
+                old_chip_weight = self.probability_map[key]
+                self.probability_map[key] /= 1 + (chips_lost - rolling_weight_multiplier) / self.n_of_chips
+                new_chip_weight_gain_map[key] = self.probability_map[key] - old_chip_weight
+                self.total_chip_weight += new_chip_weight_gain_map[key]
 
         self.sanity_check()
         return chip_weight_gain_map
 
-    def withdraw_chip_from_probability_map(self, chip):
+    def remove_chips_from_probability_map(self, chips, chips_lost):
         self.sanity_check()
+        chip_weight_loss_map = dict()
+        for chip in chips:
+            if self.probability_map.__contains__(chip):
+                for side in chip.get_sides():
+                    self.numbers_in_existence[side] = max(self.numbers_in_existence[side] - chips_lost, 0)
+                    self.max_numbers[side] = min(self.max_numbers[side] - chips_lost, self.numbers_in_existence[side] - chips_lost)
+                    self.min_numbers[side] = min(self.max_numbers[side], self.min_numbers[side])
 
-        for side in chip.get_sides():
-            self.max_numbers[side] -= 1
-            self.numbers_in_existence[side] -= 1
-            self.min_numbers[side] = min(self.max_numbers[side], self.min_numbers[side])
+                self.n_of_chips -= chips_lost
+                chip_weight_loss_map[chip] = self.probability_map.pop(chip)
+                self.total_chip_weight -= chip_weight_loss_map[chip]
 
-        chip_weight = self.probability_map.pop(chip)
-        self.n_of_chips -= 1
-        self.total_chip_weight -= chip_weight
-
-        tmp = self.refactor_probabilities(chip_weight, 1)
-
+        tmp = merge_maps([chip_weight_loss_map, self.refactor_probabilities(chip_weight_loss_map, chips_lost)], False)
         self.sanity_check()
-
-        return tmp
-
-    def remove_chip_from_probability_map(self, chip):
-        if not self.probability_map.__contains__(chip):
-            return
-
-        self.sanity_check()
-
-        chip_weight = self.probability_map.pop(chip)
-        self.total_chip_weight -= chip_weight
-        for side in chip.get_sides():
-            self.numbers_in_existence[side] = max(self.numbers_in_existence[side] - 1, 0)
-            self.max_numbers[side] = min(self.max_numbers[side], self.numbers_in_existence[side])
-
-        tmp = self.refactor_probabilities(chip_weight, 0)
-
-        self.sanity_check()
-
         return tmp
 
     def remove_numbers_from_probability_map(self, numbers):
         self.sanity_check()
-
         for number in numbers:
             self.max_numbers[number] == 0
             self.min_numbers[number] == 0  # Should be 0 anyway
 
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
-        chip_weight_map = dict()
-        for chip in numbered_chips:
-            chip_weight_map[chip] = self.remove_chip_from_probability_map(chip)
-
+        tmp = self.remove_chips_from_probability_map(numbered_chips, False)
         self.sanity_check()
-
-        return chip_weight_map
+        return tmp
 
     def decrease_probability_from_number(self, numbers, ratio):
         numbered_chips = ChipFactory.create_chips_with_specific_numbers(numbers, self.highest_double)
@@ -140,6 +122,7 @@ class ProbabilityMap:
         return chips_weight_loss_map
 
     def adjust_probability_on_remaining_chips(self, chip_weight_loss_map):
+        # Implementation is old, must fix
         for key in chip_weight_loss_map:
             if self.probability_map.__contains__(key):
                 self.total_chip_weight -= self.probability_map[key]
@@ -148,7 +131,6 @@ class ProbabilityMap:
 
     def detach_sub_probability_map(self, n_chips):
         self.sanity_check()
-
         split_ratio = Fraction(n_chips, self.n_of_chips)
         new_probability_map = dict()
 
@@ -168,7 +150,6 @@ class ProbabilityMap:
 
         self.n_of_chips -= n_chips
         self.sanity_check()
-
         return [new_probability_map, detached_min_numbers, detached_max_numbers]
 
     def incorporate_probability_map(self, n_chips, probability_map, min_numbers, max_numbers):
@@ -212,3 +193,15 @@ class ProbabilityMap:
         s.append("Min chips for each number are: %s\n" % self.min_numbers)
         s.append("Numbers in existence are: %s\n" % self.numbers_in_existence)
         return ''.join(s)
+
+
+def merge_maps(probability_maps, is_addition=True):
+    plus_or_minus = is_addition * 2 - 1
+    merged_map = dict()
+    for pm in probability_maps:
+        for key in pm.keys():
+            if merged_map.__contains__(key):
+                merged_map[key] += plus_or_minus * pm[key]
+            else:
+                merged_map[key] = plus_or_minus * pm[key]
+    return merged_map

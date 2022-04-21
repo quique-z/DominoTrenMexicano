@@ -23,8 +23,7 @@ class ProbabilityMapList:
         self.probability_maps.append(ProbabilityMap(self.n_players, "Draw Pool", self.highest_double, double_to_skip, True))
 
         # Remove my chips from pool
-        for chip in chips:
-            self.probability_maps[-1].withdraw_chip_from_probability_map(chip)
+        self.probability_maps[-1].remove_chips_from_probability_map(chips, True)
 
         # Give other players their initial hand
         for i in range(self.n_players):
@@ -44,10 +43,7 @@ class ProbabilityMapList:
 
     def chip_was_played_by_player(self, index, chip):
         for pm in self.probability_maps:
-            if pm.get_index() == index:
-                pm.withdraw_chip_from_probability_map(chip)
-            else:
-                pm.remove_chip_from_probability_map(chip)
+            pm.remove_chips_from_probability_map([chip], pm.get_index() == index)
         self.sanity_check()
 
     def remove_numbers_from_probability_map(self, index, numbers):
