@@ -39,7 +39,7 @@ def generate_sequence_recursive(open_position, chips, heuristic_value_per_chip=0
     best_chip = None
 
     for chip in chips:
-        if chip.__contains__(open_position):
+        if open_position in chip:
             new_chips = chips.copy()
             new_chips.remove(chip)
             new_value = chip.get_value() + heuristic_value_per_chip

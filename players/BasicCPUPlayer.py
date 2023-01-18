@@ -77,7 +77,7 @@ class Player:
 
     def can_play_number(self, number):
         for chip in self.chips:
-            if chip.__contains__(number):
+            if number in chip:
                 return True
         return False
 
@@ -97,7 +97,7 @@ class Player:
             if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
                 for open_number in row.get_open_positions():
                     for chip in self.chips:
-                        if chip.__contains__(open_number):
+                        if open_number in chip:
                             chip_to_play = chip
                             self.chips.remove(chip)
                             board.play_chip(chip_to_play, open_number, row.get_index(), self.index)
@@ -107,7 +107,7 @@ class Player:
                                 can_play = self.can_play_number(open_number)
                                 if can_play:
                                     for second_chip in self.chips:
-                                        if second_chip.__contains__(open_number):
+                                        if open_number in second_chip:
                                             second_chip_to_play = second_chip
                                             self.chips.remove(second_chip)
                                             board.play_chip(second_chip_to_play, open_number, row.get_index(), self.index)
@@ -118,7 +118,7 @@ class Player:
                                 if board.can_draw():
                                     drawn_chip = board.draw(self.index)
                                     self.add_chip(drawn_chip)
-                                    can_play = drawn_chip.__contains__(open_number)
+                                    can_play = open_number in drawn_chip
                                 if can_play:
                                     self.chips.remove(drawn_chip)
                                     board.play_chip(drawn_chip, open_number, row.get_index(), self.index)
@@ -131,7 +131,7 @@ class Player:
         row = board.get_forced_row()
         for number in board.get_forced_numbers():
             for chip in self.chips:
-                if chip.__contains__(number):
+                if number in chip:
                     chip_to_play = chip
                     logging.info("%s plays :%s" % (self.name, chip_to_play))
                     self.chips.remove(chip)

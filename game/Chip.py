@@ -1,8 +1,9 @@
 class Chip:
 
     def __init__(self, numbers):
-        numbers.sort()
         self.numbers = numbers
+        if self.numbers[0] > self.numbers[1]:
+            self.numbers.reverse()
 
     def get_side_a(self):
         return self.numbers[0]
@@ -33,7 +34,7 @@ class Chip:
             return self.get_side_a() + self.get_side_b()
 
     def __contains__(self, n):
-        return self.numbers.__contains__(n)
+        return n in self.numbers
 
     def __eq__(self, other):
         return self.get_side_a() == other.get_side_a() and self.get_side_b() == other.get_side_b()

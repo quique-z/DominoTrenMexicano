@@ -48,11 +48,37 @@ class ProbabilityMapList:
 
     def remove_numbers_from_probability_map(self, index, numbers):
         chip_weight_loss_map = self.probability_maps[index].remove_numbers_from_probability_map(numbers)
+        ready_to_exit = False
+        while not ready_to_exit:
+            # Use & to avoid short circuit
+            ready_to_exit = self.refactor_length_wise() & self.refactor_height_wise()
 
-        for i in range(len(self.probability_maps)):
-            if i != index:
-                self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
+        # for i in range(len(self.probability_maps)):
+        #    if i != index:
+        #        self.probability_maps[i].adjust_probability_on_remaining_chips(chip_weight_loss_map)
         self.sanity_check()
+
+    def refactor_length_wise(self):
+        chips = ChipFactory.create_chips(self.highest_double)
+        ready_to_exit = True
+        for chip in chips:
+            total_chip_weight = Fraction(0)
+            for pm in self.probability_maps:
+                if chip in pm:
+                    total_chip_weight += pm[chip]
+            if not (total_chip_weight == 0 or total_chip_weight == 1):
+                for pm in self.probability_maps:
+                    ready_to_exit = False
+                    pm.refactor_chip(chip, total_chip_weight)
+
+        return ready_to_exit
+
+    def refactor_height_wise(self):
+        changes_were_made = False
+        for pm in self.probability_maps:
+            changes_were_made = pm.refactor_all() or changes_were_made
+
+        return not changes_were_made
 
     def decrease_probability_from_number(self, index, numbers, not_likely_to_have_chip_ratio):
         self.probability_maps[index].decrease_probability_from_number(numbers, not_likely_to_have_chip_ratio)

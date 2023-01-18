@@ -38,7 +38,7 @@ class GameManager:
 
     def init_round(self):
         self.chips = ChipFactory.create_chips(self.highest_double, self.current_double)
-        random.shuffle(self.chips)
+        # random.shuffle(self.chips)
 
         for player in self.players:
             chips = []

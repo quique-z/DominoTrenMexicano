@@ -34,7 +34,7 @@ class SimpleCPUPlayer(Player):
 
         for chip in chips_not_in_sequence:
             for number in board.get_forced_numbers():
-                if chip.__contains__(number) and chip.get_value() > max_value:
+                if number in chip and chip.get_value() > max_value:
                     max_value = chip.get_value()
                     best_number = number
                     best_chip = chip
@@ -47,7 +47,7 @@ class SimpleCPUPlayer(Player):
 
         for chip in self.chip_node_list.get_chipset():
             for number in board.get_forced_numbers():
-                if chip.__contains__(number):
+                if number in chip:
                     new_chips = self.chips.copy()
                     new_chips.remove(chip)
                     new_sequence = generate_sequence(board.get_row(self.index).get_open_positions(), new_chips,
@@ -82,7 +82,7 @@ class SimpleCPUPlayer(Player):
 
             for chip in self.chips:
                 for number in board.get_forced_numbers():
-                    if chip.__contains__(number):
+                    if number in chip:
                         new_chips = self.chips.copy()
                         new_chips.remove(chip)
                         new_open_positions = my_open_positions.copy()
@@ -123,7 +123,7 @@ class SimpleCPUPlayer(Player):
                 drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
                 for number in board.get_forced_numbers():
-                    if drawn_chip.__contains__(number):
+                    if number in drawn_chip:
                         self.play_chips(board, [drawn_chip], number, self.index)
                         board.remove_forced(number)
                         break  # This could cause issues?
@@ -161,7 +161,7 @@ class SimpleCPUPlayer(Player):
     def can_play_self(self, board):
         for position in board.get_row(self.index).get_open_positions():
             for chip in self.chips:
-                if chip.__contains__(position):
+                if position in chip:
                     return True
         return False
 
@@ -176,7 +176,7 @@ class SimpleCPUPlayer(Player):
             if board.can_draw():
                 drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
-                if drawn_chip.__contains__(side_to_play):
+                if side_to_play in drawn_chip:
                     logging.info("The drawn chip is playable!")
                     self.play_chips(board, [drawn_chip], side_to_play, self.index)
                 else:
@@ -204,7 +204,7 @@ class SimpleCPUPlayer(Player):
                 for row in board.get_rows():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
-                            if chip.__contains__(position):
+                            if position in chip:
                                 value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
                                 if value > min_acceptable_value:
                                     return True
@@ -214,10 +214,10 @@ class SimpleCPUPlayer(Player):
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in chips_not_in_sequence:
-                        if chip.__contains__(position) and not chip.is_double():
+                        if position in chip and not chip.is_double():
                             current_chip = [chip]
                             current_value = chip.get_value() * self.play_chip_elsewhere_multiplier
-                            if doubles.__contains__(position):
+                            if position in doubles:
                                 current_chip.insert(0, doubles.get(position))
                                 current_value += doubles.get(position).get_value() * self.play_chip_elsewhere_multiplier + self.heuristic_value_per_chip
                             if current_value > min_acceptable_value:
@@ -230,7 +230,7 @@ class SimpleCPUPlayer(Player):
                 for row in board.get_rows():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
-                            if chip.__contains__(position):
+                            if position in chip:
                                 value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
                                 if value > min_acceptable_value:
                                     return True
@@ -240,14 +240,14 @@ class SimpleCPUPlayer(Player):
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in self.chip_node_list.get_chipset():
-                        if chip.__contains__(position) and not chip.is_double():
+                        if position in chip and not chip.is_double():
                             new_chips = self.chips.copy()
                             new_chips.remove(chip)
                             new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
                             current_chip = [chip]
                             current_value = chip.get_value() * self.play_chip_elsewhere_multiplier + new_sequence.get_chipset_value() - my_current_sequence_value
 
-                            if doubles.__contains__(position):
+                            if position in doubles:
                                 new_chips.remove(doubles.get(position))
                                 new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
                                 value_with_double = (chip.get_value() + doubles.get(position).get_value()) * self.play_chip_elsewhere_multiplier + self.heuristic_value_per_chip + new_sequence.get_chipset_value() - my_current_sequence_value
@@ -278,7 +278,7 @@ class SimpleCPUPlayer(Player):
                 for row in board.get_rows():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
-                            if chip.__contains__(position):
+                            if position in chip:
                                 value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
                                 if value > best_value:
                                     best_value = value
@@ -291,10 +291,10 @@ class SimpleCPUPlayer(Player):
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in chips_not_in_sequence:
-                        if chip.__contains__(position) and not chip.is_double():
+                        if position in chip and not chip.is_double():
                             current_chip = [chip]
                             current_value = chip.get_value() * self.play_chip_elsewhere_multiplier
-                            if doubles.__contains__(position):
+                            if position in doubles:
                                 current_chip.insert(0, doubles.get(position))
                                 current_value += doubles.get(position).get_value() * self.play_chip_elsewhere_multiplier + self.heuristic_value_per_chip
                             if current_value > best_value:
@@ -310,7 +310,7 @@ class SimpleCPUPlayer(Player):
                 for row in board.get_rows():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
-                            if chip.__contains__(position):
+                            if position in chip:
                                 value = chip.get_value() * self.play_chip_elsewhere_multiplier - self.penalty_for_playing_lone_double
                                 if value > best_value:
                                     best_row = row.get_index()
@@ -323,14 +323,14 @@ class SimpleCPUPlayer(Player):
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in self.chip_node_list.get_chipset():
-                        if chip.__contains__(position) and not chip.is_double():
+                        if position in chip and not chip.is_double():
                             new_chips = self.chips.copy()
                             new_chips.remove(chip)
                             new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
                             current_chip = [chip]
                             current_value = chip.get_value() * self.play_chip_elsewhere_multiplier + new_sequence.get_chipset_value() - my_current_sequence_value
 
-                            if doubles.__contains__(position):
+                            if position in doubles:
                                 new_chips.remove(doubles.get(position))
                                 new_sequence = generate_sequence(my_open_positions, new_chips, self.heuristic_value_per_chip, self.front_loaded_index)
                                 value_with_double = (chip.get_value() + doubles.get(position).get_value()) * self.play_chip_elsewhere_multiplier \
@@ -355,7 +355,7 @@ class SimpleCPUPlayer(Player):
             if board.can_draw():
                 drawn_chip = board.draw(self.index)
                 self.add_chip(drawn_chip)
-                if drawn_chip.__contains__(best_side):
+                if best_side in drawn_chip:
                     self.play_chips(board, [drawn_chip], best_side, best_row)
                     must_set_train = False
             if must_set_train:

@@ -77,11 +77,11 @@ class ChipNode:
         return self.chip
 
     def __contains__(self, value):
-        if self.chip.__contains__(value):
+        if value in self.chip:
             return True
-        elif self.next is not None and self.next.__contains__(value):
+        elif self.next is not None and value in self.next:
             return True
-        elif self.next2 is not None and self.next2.__contains__(value):
+        elif self.next2 is not None and value in self.next2:
             return True
         return False
 

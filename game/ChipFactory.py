@@ -15,6 +15,6 @@ def create_chips_with_specific_numbers(numbers, highest_double):
     for number in numbers:
         for i in range(highest_double + 1):
             chip = Chip([i, number])
-            if not chips.__contains__(chip):
+            if chip not in chips:
                 chips.append(chip)
     return chips
