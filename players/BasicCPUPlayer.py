@@ -1,6 +1,7 @@
-# Very basic player. Follows the rules but literally plays the first chip available regardless of how good of a move
+# Very basic player. Follows the rules but plays the first chip available regardless of how good of a move
 # that ends up being. Mostly for debugging purposes, inheritance or for flexing an AI against it.
 import logging
+
 
 class Player:
 
@@ -20,9 +21,12 @@ class Player:
         self.has_won = False
         self.eligible_to_win = False
 
+    def init_turn(self, board):
+        board.clear_history(self.index)
+
     def end_turn(self, board, say_one=True):
         if len(self.chips) == 1:
-            # Saying "One" when you have 1 chip left is a best practice, but some AI players may chose not to do so and take the intentional penalty draw.
+            # Saying "One" when you have 1 chip left is a best practice, but some AI players may choose not to do so and take the intentional penalty draw.
             if say_one:
                 print("%s says: One!" % self.name)
             elif board.can_draw():
@@ -42,7 +46,7 @@ class Player:
         logging.info("%s draws: %s" % (self.name, chip.__str__()))
 
     def can_play(self, board):
-        if self.chips is None or len(self.chips) == 0:
+        if len(self.chips) == 0:
             logging.info("%s doesn't have chips, but it is their turn." % self.name)
             return False
 
@@ -90,11 +94,10 @@ class Player:
             self.play_first(board)
         else:
             self.play_any(board)
-        self.end_turn(board)
 
     def play_any(self, board):
-        for row in board.get_rows():
-            if row.get_index() == self.index or (row.has_train() and (not board.has_train(self.index))):
+        for row in board.get_rows_random_start():
+            if row.get_index() == self.index or (row.has_train() and not board.has_train(self.index)):
                 for open_number in row.get_open_positions():
                     for chip in self.chips:
                         if open_number in chip:
@@ -142,8 +145,6 @@ class Player:
                     return
 
     def get_current_points(self):
-        if len(self.chips) == 0:
-            return 0
         total = 0
         for chip in self.chips:
             total += chip.get_value()
@@ -175,9 +176,6 @@ class Player:
 
     def get_index(self):
         return self.index
-
-    def init_turn(self, board):
-        board.clear_history(self.index)
 
     def __str__(self):
         s = ["Name: %s" % self.name,

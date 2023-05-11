@@ -1,3 +1,5 @@
+from random import randrange
+
 from game.Row import Row
 
 
@@ -8,6 +10,7 @@ class Board:
             player_names = range(n_players)
         self.player_move_history = [[]] * n_players
         self.center_double = center_chip_double
+        self.n_players = n_players
         self.draw_pile = chips
         self.forced = False
         self.forced_row = -1
@@ -70,6 +73,10 @@ class Board:
 
     def get_rows(self):
         return self.rows
+
+    def get_rows_random_start(self):
+        i = randrange(len(self.rows))
+        return self.rows[i:] + self.rows[:i]
 
     def can_draw(self):
         return len(self.draw_pile) > 0

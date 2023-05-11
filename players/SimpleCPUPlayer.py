@@ -107,8 +107,7 @@ class SimpleCPUPlayer(Player):
         if not board.is_forced():
             board.remove_train(self.index)
 
-    def play_first(self, board, play_all=False):
-        # for i in range(self.chip_node_list.get_chipset_length()):
+    def play_first(self, board, play_all=True):
         while self.chip_node_list.has_chip_to_play():
             cn = self.chip_node_list.get_best_chip_to_play()
             chips = cn.get_next_piece()
@@ -140,7 +139,7 @@ class SimpleCPUPlayer(Player):
             self.play_forced(board)
         elif self.can_play_all_my_chips_if_i_play_many(board):
             logging.info("%s is playing all their chips" % self.name)
-            self.play_first(board, True)
+            self.play_first(board, True) # Sometimes it is best to keep one for next turn.
         # TODO: Danger of someone else winning is not taken into consideration yet.
         elif self.can_play_cheaply_elsewhere(board):
             logging.info("%s is playing elsewhere" % self.name)
@@ -156,7 +155,6 @@ class SimpleCPUPlayer(Player):
                 raise Exception("What's going on?")
             logging.info("%s is playing elsewhere, at a cost" % self.name)
             self.play_cheaply_elsewhere(board)
-        self.end_turn(board)
 
     def can_play_self(self, board):
         for position in board.get_row(self.index).get_open_positions():
@@ -275,7 +273,7 @@ class SimpleCPUPlayer(Player):
         for chip in chips_not_in_sequence:
             if chip.is_double():
                 doubles[chip.get_side_a()] = chip
-                for row in board.get_rows():
+                for row in board.get_rows_random_start():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
                             if position in chip:
@@ -287,7 +285,7 @@ class SimpleCPUPlayer(Player):
                                     best_row = row.get_index()
 
         # Check for the rest of the chips that are not in the sequence
-        for row in board.get_rows():
+        for row in board.get_rows_random_start():
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in chips_not_in_sequence:
@@ -307,7 +305,7 @@ class SimpleCPUPlayer(Player):
         for chip in self.chip_node_list.get_chipset():
             if chip.is_double():
                 doubles[chip.get_side_a()] = chip
-                for row in board.get_rows():
+                for row in board.get_rows_random_start():
                     if row.get_index() != self.get_index() and row.has_train():
                         for position in row.get_open_positions():
                             if position in chip:
@@ -319,7 +317,7 @@ class SimpleCPUPlayer(Player):
                                     best_chip = [chip]
 
         # Check for the rest of the chips in the sequence
-        for row in board.get_rows():
+        for row in board.get_rows_random_start():
             if row.get_index() != self.get_index() and row.has_train():
                 for position in row.get_open_positions():
                     for chip in self.chip_node_list.get_chipset():
@@ -350,7 +348,6 @@ class SimpleCPUPlayer(Player):
 
         # Resolve lone double
         if best_chip[0].is_double() and len(best_chip) == 1:
-            board.set_numbers_player_does_not_have(self.index, [best_side])
             must_set_train = True
             if board.can_draw():
                 drawn_chip = board.draw(self.index)
@@ -361,13 +358,10 @@ class SimpleCPUPlayer(Player):
             if must_set_train:
                 board.set_forced(best_row, best_side, self.index)
                 board.set_train(self.index)
+            board.set_numbers_player_does_not_have(self.index, [best_side])
 
     def can_play_all_my_chips_if_i_play_many(self, board):
-        if not board.get_row(self.index).can_play_many():
-            return False
-        if self.chip_node_list.get_chipset_value() == self.get_current_points():
-            return True
-        return False
+        return board.get_row(self.index).can_play_many() and self.chip_node_list.get_chipset_value() == self.get_current_points()
 
     def update_sequence(self, board):
         self.needs_to_update_sequence = False

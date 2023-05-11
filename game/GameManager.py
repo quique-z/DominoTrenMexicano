@@ -14,7 +14,7 @@ class GameManager:
 
     def __init__(self, n_chips_per_player, highest_double, initial_double, basic_py, simple_py, heuristic_py, player_names=[]):
         if len(player_names) == 0:
-            for i in basic_py + simple_py:
+            for i in basic_py + simple_py + heuristic_py:
                 player_names.append(i.__str__())
         self.n_players = basic_py + simple_py + heuristic_py
         self.n_chips_per_player = n_chips_per_player
@@ -25,20 +25,21 @@ class GameManager:
         self.player_names = player_names
         self.global_winner = []
         self.endgame = False
+        self.players = []
         self.board = None
         self.chips = []
-        players = []
         for i in range(basic_py):
-            players.append(Player(i, player_names[i]))
-        for i in range(len(players), len(players) + simple_py):
-            players.append(SimpleCPUPlayer(i, player_names[i]))
-        for i in range(len(players), len(players) + heuristic_py):
-            players.append(HeuristicAIPlayer(i, player_names, highest_double, n_chips_per_player))
-        self.players = players
+            self.players.append(Player(i, player_names[i]))
+        for i in range(len(self.players), len(self.players) + simple_py):
+            self.players.append(SimpleCPUPlayer(i, player_names[i]))
+        for i in range(len(self.players), len(self.players) + heuristic_py):
+            self.players.append(HeuristicAIPlayer(i, player_names, highest_double, n_chips_per_player))
 
     def init_round(self):
         self.chips = ChipFactory.create_chips(self.highest_double, self.current_double)
-        # random.shuffle(self.chips)
+        random.shuffle(self.chips)
+        self.endgame = False
+        self.endgame_countdown = self.n_players
 
         for player in self.players:
             chips = []
@@ -46,7 +47,7 @@ class GameManager:
                 chips.append(self.chips.pop())
             player.init_round(chips, self.current_double)
 
-        self.board = Board(len(self.players), self.current_double, self.chips, self.player_names)
+        self.board = Board(self.n_players, self.current_double, self.chips, self.player_names)
         self.current_double -= 1
 
     def end_round(self):
@@ -87,6 +88,7 @@ class GameManager:
                 for player in self.players:
                     if player.is_eligible_to_win():
                         player.declare_as_round_winner()
+                        return False
 
         return not self.players[self.previous_player_id()].is_round_winner()
 
@@ -101,22 +103,23 @@ class GameManager:
         if can_play:
             self.players[self.turn].play(self.board)
             if self.endgame:
-                self.endgame_countdown = len(self.players)
+                self.endgame_countdown = self.n_players
         else:
             self.board.set_train(self.turn)
             if self.endgame:
                 self.endgame_countdown -= 1
 
+        self.players[self.turn].end_turn(self.board)
         self.turn = self.next_player_id()
 
     def has_next_round(self):
         return self.current_double >= 0
 
     def previous_player_id(self):
-        return (self.turn - 1) % len(self.players)
+        return (self.turn - 1) % self.n_players
 
     def next_player_id(self):
-        return (self.turn + 1) % len(self.players)
+        return (self.turn + 1) % self.n_players
 
     def play_ai_game(self):
         millis = time.time() * 1000
