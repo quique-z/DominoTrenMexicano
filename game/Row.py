@@ -19,8 +19,8 @@ class Row:
     def get_open_positions(self):
         return self.open_positions
 
-    def add_open_positions(self, n):
-        self.open_positions.append(n)
+    def add_open_positions(self, position):
+        self.open_positions.append(position)
         self.is_empty = False
 
     def swap_open_positions(self, remove, add):

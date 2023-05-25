@@ -1,6 +1,15 @@
 class Chip:
+    double_zero_value = 50
+    highest_possible_chip = 15
 
     def __init__(self, numbers):
+        if numbers is None or len(numbers) != 2:
+            raise Exception("A chip needs 2 numbers to be created.")
+
+        for n in numbers:
+            if n < 0 or n > self.highest_possible_chip:
+                raise Exception("Numbers in chip need to be between 0 and %s" % self.highest_possible_chip)
+
         self.numbers = numbers
         if self.numbers[0] > self.numbers[1]:
             self.numbers.reverse()
@@ -28,16 +37,16 @@ class Chip:
         return self.get_side_a() == self.get_side_b()
 
     def get_value(self):
-        if self.get_side_a() == 0 and self.get_side_b() == 0:
-            return 50
-        else:
-            return self.get_side_a() + self.get_side_b()
+        if self.get_side_a() == self.get_side_b() == 0:
+            return self.double_zero_value
+
+        return self.get_side_a() + self.get_side_b()
 
     def __contains__(self, n):
         return n in self.numbers
 
     def __eq__(self, other):
-        return self.get_side_a() == other.get_side_a() and self.get_side_b() == other.get_side_b()
+        return self.get_sides() == other.get_sides()
 
     def __str__(self):
         return "[%s|%s]" % (self.get_side_a(), self.get_side_b())

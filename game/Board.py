@@ -5,10 +5,9 @@ from game.Row import Row
 
 class Board:
 
-    def __init__(self, n_players, center_chip_double, chips, player_names=[]):
-        if not player_names:
+    def __init__(self, n_players, center_chip_double, chips, player_names=None):
+        if player_names is None:
             player_names = range(n_players)
-        self.player_move_history = [[]] * n_players
         self.center_double = center_chip_double
         self.n_players = n_players
         self.draw_pile = chips
@@ -20,17 +19,25 @@ class Board:
         for i in range(n_players):
             self.rows.append(Row(i, center_chip_double, player_names[i]))
 
-    def play_chip(self, chip_to_play, side_to_play, row_to_play, player):
-        self.set_chip_played_by_player(player, chip_to_play)
+    def play_chip(self, chip_to_play, side_to_play, row_to_play):
         if chip_to_play.is_double():
             self.rows[row_to_play].add_open_positions(side_to_play)
         else:
             self.rows[row_to_play].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
 
-    def set_forced(self, row, number, culprit):
+    def play_chip_node_list(self, chip_node_list, row_to_play):
+        while chip_node_list.has_chip_to_play():
+            cn = chip_node_list.get_best_chip_to_play()
+            self.play_chip_nodes(cn, row_to_play)
+
+    def play_chip_nodes(self, chip_node, row_to_play):
+        for chip in chip_node.get_next_move_as_chip_list():
+            self.play_chip(chip, chip_node.get_chip_side_to_play(), row_to_play)
+
+    def set_forced(self, row, numbers, culprit):
         self.forced = True
         self.forced_row = row
-        self.forced_numbers.append(number)
+        self.forced_numbers.extend(numbers)
         self.forced_culprit = culprit
         self.set_train(culprit)
 
@@ -41,31 +48,16 @@ class Board:
             self.forced_row = -1
             self.forced_culprit = -1
 
-    def get_move_history(self, index):
-        return self.player_move_history[index]
-
-    def clear_history(self, index):
-        self.player_move_history[index] = []
-
-    def set_numbers_player_does_not_have(self, index, numbers):
-        self.player_move_history[index].append(["Numbers", numbers])
-
-    def set_chip_played_by_player(self, index, chip):
-        self.player_move_history[index].append(["Chip", chip])
-
-    def set_player_drew_chip(self, index):
-        self.player_move_history[index].append(["Draw", 1])
-
     def is_forced(self):
         return self.forced
 
-    def get_forced_row(self):
+    def get_forced_row_index(self):
         return self.forced_row
 
     def get_forced_numbers(self):
         return self.forced_numbers
 
-    def get_forced_culprit(self):
+    def get_forced_culprit_index(self):
         return self.forced_culprit
 
     def get_row(self, i):
@@ -81,8 +73,7 @@ class Board:
     def can_draw(self):
         return len(self.draw_pile) > 0
 
-    def draw(self, player_index):
-        self.set_player_drew_chip(player_index)
+    def draw(self):
         return self.draw_pile.pop()
 
     def set_train(self, index):

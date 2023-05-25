@@ -7,21 +7,22 @@ import math
 import ai.SequenceGeneration
 import game.ChipFactory
 import time
+
 logging.info = print
 
 chips_to_draw = [12, 12, 12, 12, 12, 10, 9, 8, 8, 7, 7]
+human_py = 0
 basic_py = 0
 simple_py = 4
 heuristic_py = 0
-n_players = basic_py + simple_py + heuristic_py
+n_players = basic_py + simple_py + heuristic_py + human_py
 highest_double = 12
 initial_double = highest_double
 historic_winners = [0] * n_players
-names = ["Pety", "Anel", "Abuela", "AI", "Man", "Joe", "Manolo", "Paul", "Arnaldo", "Paco"]
-
+names = ["Alice", "Bob", "Charlie", "Dan", "Ernie", "Frank", "George", "Hector", "Indy", "Jane"]
 
 for i in range(1000):
-    game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, basic_py, simple_py, heuristic_py, names[:n_players])
+    game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, basic_py, simple_py, heuristic_py, human_py, names[:n_players])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1
@@ -40,9 +41,9 @@ for j in range(5, 31):
             chips.append(pool.pop())
         millis = time.time() * 1000
         open_positions = []
-        for i in range(random.randint(1,3)):
+        for i in range(random.randint(1, 3)):
             open_positions.append(random.randrange(12))
-        cs = SequenceGeneration.generate_sequence(open_positions, chips, 12.55, 0.99)
+        cs = SequenceGeneration.generate_sequence(open_positions, chips, 12.55, 0.99, 3)
         logging.info(cs.__str__())
         run_time = time.time() * 1000 - millis
         total_time += run_time
