@@ -2,7 +2,7 @@
 import logging
 from typing import List, Self
 
-from game import Chip, Board, ChipNodeList
+from game import Chip, Board, PlayableChipNode
 
 
 class Player:
@@ -39,13 +39,13 @@ class Player:
         self.chips.append(chip)
         logging.info("%s draws: %s" % (self.name, chip.__str__()))
 
-    def remove_chip(self, chip: Chip) -> None:
+    def remove_chips(self, chips: List[Chip]) -> None:
         raise NotImplementedError
 
     def can_play(self, board: Board) -> bool:
         return NotImplemented
 
-    def play(self, board: Board, players: List[Self]) -> [ChipNodeList, int]:
+    def play(self, board: Board, players: List[Self]) -> PlayableChipNode:
         return NotImplemented
 
     def get_current_points(self) -> int:

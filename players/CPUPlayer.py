@@ -13,9 +13,9 @@ class CPUPlayer(Player):
         self.say_one = True
         self.remove_train = True
 
-    def remove_chip(self, chip: Chip) -> None:
-        self.chips.remove(chip)
-        logging.info("%s plays: %s" % (self.name, chip.__str__()))
+    def remove_chips(self, chips: List[Chip]) -> None:
+        for chip in chips:
+            self.chips.remove(chip)
 
     def can_play(self, board: Board) -> bool:
         # TODO: Maybe can be moved to super class

@@ -43,21 +43,6 @@ class ChipNodeList:
         self.remove_node(best_chip_node)
         return best_chip_node.get_next_move_as_node()
 
-    def has_double_to_play_immediately(self) -> bool:
-        for cn in self.chip_nodes:
-            if cn.is_chip_double():
-                return True
-        return False
-
-    def ends_in_double(self) -> bool:
-        return len(self.get_ending_doubles()) > 0
-
-    def get_ending_doubles(self) -> List[int]:
-        doubles = []
-        for cn in self.chip_nodes:
-            doubles += cn.get_ending_doubles()
-        return doubles
-
     def has_chip_to_play(self) -> bool:
         return len(self.chip_nodes) > 0
 
@@ -95,12 +80,6 @@ class ChipNodeList:
         for cn in self.chip_nodes:
             value += cn.get_chain_value()
         return value
-
-    def __copy__(self) -> Self:
-        cnl = ChipNodeList()
-        for cn in self.chip_nodes:
-            cnl.add(cn.__copy__())
-        return cnl
 
     def __len__(self) -> int:
         return len(self.get_chipset())

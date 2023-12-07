@@ -1,6 +1,7 @@
 from typing import List
 
-from game import Chip, ChipNodeList
+from game import Chip, ChipNode
+from game.ChipNodeList import ChipNodeList
 
 
 class Row:
@@ -36,7 +37,8 @@ class Row:
         self.open_positions.append(chip.get_other_side(side_to_play))
         self.is_empty = False
 
-    def play_chip_node_list(self, chip_node_list: ChipNodeList) -> None:
+    def play_chip_node(self, chip_node: ChipNode) -> None:
+        chip_node_list = ChipNodeList([chip_node])
         while chip_node_list.has_chip_to_play():
             cn = chip_node_list.get_best_chip_to_play()
             for chip in cn.get_next_move_as_chip_list():

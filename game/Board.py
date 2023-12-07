@@ -1,6 +1,6 @@
 from typing import List, Set
 
-from game import Chip, ChipNodeList
+from game import Chip, ChipNodeList, PlayableChipNode
 from game.Row import Row
 
 
@@ -23,8 +23,8 @@ class Board:
     def play_chip(self, chip_to_play: Chip, side_to_play: int, row_to_play: int) -> None:
         self.rows[row_to_play].play_chip(chip_to_play, side_to_play)
 
-    def play_chip_node_list(self, chip_node_list: ChipNodeList, row_to_play: int) -> None:
-        self.rows[row_to_play].play_chip_node_list(chip_node_list)
+    def play_playable_chip_node(self, playable_chip_node: PlayableChipNode) -> None:
+        self.rows[playable_chip_node.get_row()].play_chip_node(playable_chip_node.get_chip_node())
 
     def set_forced(self, row: int, numbers: List[int], culprit: int) -> None:
         self.forced = True

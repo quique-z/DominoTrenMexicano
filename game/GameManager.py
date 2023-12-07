@@ -4,7 +4,7 @@ import random
 import time
 from typing import List
 
-from game import ChipFactory, ChipNodeList
+from game import ChipFactory, ChipNodeList, PlayableChipNode, Chip
 from game.Board import Board
 from players.HeuristicCPUPlayer import HeuristicCPUPlayer
 from players.HumanPlayer import HumanPlayer
@@ -128,88 +128,93 @@ class GameManager:
     def play(self) -> None:
         active_player = self.players[self.turn]
         logging.info("%s plays: " % active_player.get_name())
-        [chip_node_list, row] = active_player.play(self.board, self.players)  # TODO: Can reduce this to ChipNode instead of CNL?
-        self.validate_play(chip_node_list, row)
-        self.make_move(chip_node_list, row)
-        if chip_node_list.ends_in_double():
-            self.handle_unresolved_doubles(chip_node_list, row)
+        playable_chip_node = active_player.play(self.board, self.players)  # TODO: Can reduce this to ChipNode instead of CNL?
+        self.validate_play(playable_chip_node)
+        self.make_move(playable_chip_node)
+        if playable_chip_node.ends_in_double():
+            self.handle_unresolved_doubles(playable_chip_node)
 
-    def handle_unresolved_doubles(self, chip_node_list: ChipNodeList, row: int) -> None:
+    def handle_unresolved_doubles(self, playable_chip_node: PlayableChipNode) -> None:
         active_player = self.players[self.turn]
         logging.info("%s ends in double." % active_player.get_name())
-        self.board.set_forced(row, chip_node_list.get_ending_doubles(), self.turn)
+        row = playable_chip_node.get_row()
+        forced_numbers = playable_chip_node.get_chip_node().get_ending_doubles()
+        self.board.set_forced(row, forced_numbers, self.turn)
 
         if self.board.can_draw():
             self.draw_chip()
         if active_player.can_play(self.board):
             logging.info("Drew necessary number.")
-            [chip_node_list, row] = active_player.play(self.board, self.players)
-            self.validate_play(chip_node_list, row)
-            self.make_move(chip_node_list, row)
+            playable_chip_node = active_player.play(self.board, self.players)
+            self.validate_play(playable_chip_node)
+            self.make_move(playable_chip_node)
         else:
             logging.info("Did not draw necessary number.")
 
-    def make_move(self, chip_node_list: ChipNodeList, row: int) -> None:
+    def make_move(self, playable_chip_node: PlayableChipNode) -> None:
         active_player = self.players[self.turn]
-        logging.info("%s plays: %s" % (active_player.get_name(), chip_node_list.__str__()))
+        logging.info("%s plays: %s" % (active_player.get_name(), playable_chip_node.__str__()))
 
         # Remove forced
         if self.board.is_forced():
-            self.board.remove_forced(chip_node_list.get_best_chip_to_play().get_chip_side_to_play())
+            self.board.remove_forced(playable_chip_node.get_chip_node().get_chip_side_to_play())
 
         # Remove train
         if (self.board.get_row(self.turn).has_train()
-                and self.turn == row
-                and not chip_node_list.ends_in_double()
+                and self.turn == playable_chip_node.get_row
+                and not playable_chip_node.ends_in_double()
                 and not self.board.is_forced()
                 and active_player.will_remove_train()):
             self.board.remove_train(self.turn)
 
         # Actually make move
-        self.remove_chips(chip_node_list)
-        self.board.play_chip_node_list(chip_node_list, row)
+        active_player.remove_chips(playable_chip_node.get_chip_node().get_chipset())
+        self.board.play_playable_chip_node(playable_chip_node)
 
-    def validate_play(self, chip_node_list: ChipNodeList, row: int) -> None:
-        if not chip_node_list or not chip_node_list.has_chip_to_play():
+    def validate_play(self, playable_chip_node: PlayableChipNode) -> None:
+        chip_node = playable_chip_node.get_chip_node()
+        row = playable_chip_node.get_row()
+
+        if not chip_node:
             raise Exception("Empty move.")
-        if not self.players[self.turn].has_chips(chip_node_list.get_chipset()):
-            logging.info(chip_node_list.__str__())
+        if not self.players[self.turn].has_chips(chip_node.get_chipset()):
+            logging.info(playable_chip_node.__str__())
             raise Exception("Player tried to play a chip they do not have.")
 
         if self.board.is_forced():
             if row != self.board.get_forced_row_index():
-                logging.info(chip_node_list.__str__())
+                logging.info(playable_chip_node.__str__())
                 raise Exception("Board is forced but player is trying to play somewhere else.")
-            if not chip_node_list.has_number_to_play_immediately(self.board.get_forced_numbers()):
-                logging.info(chip_node_list.__str__())
+            if chip_node.get_chip_side_to_play() not in self.board.get_forced_numbers():
+                logging.info(playable_chip_node.__str__())
                 raise Exception("Chip does not contain forced number.")
-            if len(chip_node_list) > 1:
-                logging.info(chip_node_list.__str__())
+            if len(chip_node) > 1:
+                logging.info(playable_chip_node.__str__())
                 raise Exception("Trying to play too many chips.")
             return
 
-        if not chip_node_list.has_number_to_play_immediately(self.board.get_row(row).get_open_positions()):
-            logging.info(chip_node_list.__str__())
+        if chip_node.get_chip_side_to_play() not in self.board.get_row(row).get_open_positions():
+            logging.info(playable_chip_node.__str__())
             raise Exception("Player tried to play a chip that does not match the numbers in the row.")
         if row != self.turn and self.board.get_row(self.turn).has_train():
-            logging.info(chip_node_list.__str__())
+            logging.info(playable_chip_node.__str__())
             raise Exception("Player tried to play elsewhere, but has train and is not forced.")
         if row != self.turn and not self.board.get_row(row).has_train():
-            logging.info(chip_node_list.__str__())
+            logging.info(playable_chip_node.__str__())
             raise Exception("Player tried to play in a row without train.")
-        if len(chip_node_list) > 1:
+        if len(chip_node) > 1:
             if row == self.turn and self.board.get_row(self.turn).can_play_many():
                 pass
-            elif len(chip_node_list) == 2 and chip_node_list.has_double_to_play_immediately():
+            elif len(chip_node) == 2 and chip_node.is_chip_double():
                 pass
             else:
-                logging.info(chip_node_list.__str__())
+                logging.info(playable_chip_node.__str__())
                 raise Exception("Trying to play too many chips.")
-        elif chip_node_list.has_double_to_play_immediately():
-            double = chip_node_list.get_chipset()[0]
+        elif chip_node.is_chip_double():
+            double = chip_node.get_chip()
             for chip in self.players[self.turn].chips:
                 if chip.__contains__(double.get_side_a()) and chip != double:
-                    logging.info(chip_node_list.__str__())
+                    logging.info(playable_chip_node.__str__())
                     raise Exception("Player played a double but withheld from resolving it.")
 
     def previous_player_id(self) -> int:
@@ -222,10 +227,6 @@ class GameManager:
         logging.info("%s draws chip." % self.players[self.turn].get_name())
         self.players[self.turn].add_chip(self.board.draw())
         # TODO: Notify players
-
-    def remove_chips(self, chip_node_list: ChipNodeList) -> None:
-        for chip in chip_node_list.get_chipset():
-            self.players[self.turn].remove_chip(chip)
 
     def play_ai_game(self) -> List[int]:
         millis = time.time() * 1000
