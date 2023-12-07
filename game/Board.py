@@ -1,6 +1,6 @@
 from typing import List, Set
 
-from game import Chip, ChipNodeList, PlayableChipNode
+from game import Chip, PlayableChipNode
 from game.Row import Row
 
 

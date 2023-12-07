@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import List, Set, Self
+from typing import List, Set
 
 from game import ChipNode, Chip
 

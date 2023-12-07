@@ -4,7 +4,7 @@ import random
 import time
 from typing import List
 
-from game import ChipFactory, ChipNodeList, PlayableChipNode, Chip
+from game import ChipFactory, PlayableChipNode
 from game.Board import Board
 from players.HeuristicCPUPlayer import HeuristicCPUPlayer
 from players.HumanPlayer import HumanPlayer
