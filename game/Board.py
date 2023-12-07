@@ -1,91 +1,79 @@
-from random import randrange
+from typing import List, Set
 
+from game import Chip, ChipNodeList
 from game.Row import Row
 
 
 class Board:
 
-    def __init__(self, n_players, center_chip_double, chips, player_names=None):
-        if player_names is None:
+    def __init__(self, n_players: int, center_chip_double: int, chips: List[Chip], player_names: List[str] = None) -> None:
+        if not player_names:
             player_names = range(n_players)
         self.center_double = center_chip_double
         self.n_players = n_players
         self.draw_pile = chips
         self.forced = False
         self.forced_row = -1
-        self.forced_numbers = []
+        self.forced_numbers = set()
         self.forced_culprit = -1
         self.rows = []
         for i in range(n_players):
             self.rows.append(Row(i, center_chip_double, player_names[i]))
 
-    def play_chip(self, chip_to_play, side_to_play, row_to_play):
-        if chip_to_play.is_double():
-            self.rows[row_to_play].add_open_positions(side_to_play)
-        else:
-            self.rows[row_to_play].swap_open_positions(side_to_play, chip_to_play.get_other_side(side_to_play))
+    def play_chip(self, chip_to_play: Chip, side_to_play: int, row_to_play: int) -> None:
+        self.rows[row_to_play].play_chip(chip_to_play, side_to_play)
 
-    def play_chip_node_list(self, chip_node_list, row_to_play):
-        while chip_node_list.has_chip_to_play():
-            cn = chip_node_list.get_best_chip_to_play()
-            self.play_chip_nodes(cn, row_to_play)
+    def play_chip_node_list(self, chip_node_list: ChipNodeList, row_to_play: int) -> None:
+        self.rows[row_to_play].play_chip_node_list(chip_node_list)
 
-    def play_chip_nodes(self, chip_node, row_to_play):
-        for chip in chip_node.get_next_move_as_chip_list():
-            self.play_chip(chip, chip_node.get_chip_side_to_play(), row_to_play)
-
-    def set_forced(self, row, numbers, culprit):
+    def set_forced(self, row: int, numbers: List[int], culprit: int) -> None:
         self.forced = True
         self.forced_row = row
-        self.forced_numbers.extend(numbers)
-        self.forced_culprit = culprit
         self.set_train(culprit)
+        self.forced_culprit = culprit
+        self.forced_numbers.update(numbers)
 
-    def remove_forced(self, number):
+    def remove_forced(self, number: int) -> None:
         self.forced_numbers.remove(number)
-        if len(self.forced_numbers) == 0:
+        if not self.forced_numbers:
             self.forced = False
             self.forced_row = -1
             self.forced_culprit = -1
 
-    def is_forced(self):
+    def is_forced(self) -> bool:
         return self.forced
 
-    def get_forced_row_index(self):
+    def get_forced_row_index(self) -> int:
         return self.forced_row
 
-    def get_forced_numbers(self):
+    def get_forced_numbers(self) -> Set[int]:
         return self.forced_numbers
 
-    def get_forced_culprit_index(self):
+    def get_forced_culprit_index(self) -> int:
         return self.forced_culprit
 
-    def get_row(self, i):
-        return self.rows[i]
+    def get_row(self, index: int) -> Row:
+        return self.rows[index]
 
-    def get_rows(self):
+    def get_rows(self) -> List[Row]:
         return self.rows
 
-    def get_rows_random_start(self):
-        i = randrange(len(self.rows))
-        return self.rows[i:] + self.rows[:i]
-
-    def can_draw(self):
+    def can_draw(self) -> bool:
         return len(self.draw_pile) > 0
 
-    def draw(self):
+    def draw(self) -> Chip:
         return self.draw_pile.pop()
 
-    def set_train(self, index):
+    def set_train(self, index: int) -> None:
         self.rows[index].set_train()
 
-    def remove_train(self, index):
+    def remove_train(self, index: int) -> None:
         self.rows[index].remove_train()
 
-    def has_train(self, index):
+    def has_train(self, index: int) -> bool:
         return self.rows[index].has_train()
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = ["Center double: %s" % self.center_double,
              "\nPlayers: %s" % len(self.rows),
              "\nChips in draw pile: %s" % len(self.draw_pile)]

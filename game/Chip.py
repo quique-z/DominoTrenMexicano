@@ -1,55 +1,36 @@
+from typing import List
+
+
 class Chip:
     double_zero_value = 50
     highest_possible_chip = 15
 
-    def __init__(self, numbers):
-        if numbers is None or len(numbers) != 2:
-            raise Exception("A chip needs 2 numbers to be created.")
+    def get_side_a(self) -> int:
+        pass
 
-        for n in numbers:
-            if n < 0 or n > self.highest_possible_chip:
-                raise Exception("Numbers in chip need to be between 0 and %s" % self.highest_possible_chip)
+    def get_side_b(self) -> int:
+        pass
 
-        self.numbers = numbers
-        if self.numbers[0] > self.numbers[1]:
-            self.numbers.reverse()
+    def get_sides(self) -> List[int]:
+        pass
 
-    def get_side_a(self):
-        return self.numbers[0]
+    def get_other_side(self, n: int) -> int:
+        pass
 
-    def get_side_b(self):
-        return self.numbers[1]
+    def is_double(self) -> bool:
+        pass
 
-    def get_sides(self):
-        if self.is_double():
-            return [self.get_side_a()]
-        else:
-            return self.numbers
+    def get_value(self) -> int:
+        pass
 
-    def get_other_side(self, n):
-        if self.get_side_a() == n:
-            return self.get_side_b()
-        if self.get_side_b() == n:
-            return self.get_side_a()
-        raise Exception("This chip does not contain number %s" % n)
+    def __contains__(self, n: int) -> bool:
+        return NotImplemented
 
-    def is_double(self):
-        return self.get_side_a() == self.get_side_b()
+    def __eq__(self, other: object) -> bool:
+        return NotImplemented
 
-    def get_value(self):
-        if self.get_side_a() == self.get_side_b() == 0:
-            return self.double_zero_value
+    def __str__(self) -> str:
+        return NotImplemented
 
-        return self.get_side_a() + self.get_side_b()
-
-    def __contains__(self, n):
-        return n in self.numbers
-
-    def __eq__(self, other):
-        return self.get_sides() == other.get_sides()
-
-    def __str__(self):
-        return "[%s|%s]" % (self.get_side_a(), self.get_side_b())
-
-    def __hash__(self):
-        return hash(hash(self.get_side_a()) + hash(self.get_side_b()))
+    def __hash__(self) -> int:
+        return NotImplemented

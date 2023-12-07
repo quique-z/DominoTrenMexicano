@@ -1,18 +1,18 @@
 # Representation of what an average human player may play like. An average human is likely a bit better,
 # but this should be close enough for testing and training purposes.
 import logging
+import math
 
 from ai.SequenceGeneration import generate_sequence
 from game.ChipNode import ChipNode
 from game.ChipNodeList import ChipNodeList
-from players.CPUPlayer import Player
-import math
+from players.CPUPlayer import CPUPlayer
 
 
-class SimpleCPUPlayer(Player):
+class SmartCPUCPUPlayer(CPUPlayer):
     def __init__(self, index, name=None):
         super().__init__(index, name)
-        self.play_chip_elsewhere_multiplier = 2
+        self.play_chip_elsewhere_multiplier = 1.3
         self.penalty_for_playing_lone_double = 8
         self.needs_to_update_sequence = True
         self.heuristic_value_per_chip = 7

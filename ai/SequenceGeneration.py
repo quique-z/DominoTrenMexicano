@@ -1,6 +1,7 @@
-from game.ChipNodeList import ChipNodeList
-from game.ChipNode import ChipNode
 import math
+
+from game.ChipNode import ChipNode
+from game.ChipNodeList import ChipNodeList
 
 
 def generate_sequence(open_positions, chips, heuristic_value_per_chip=0, front_loaded_index=1, max_depth=math.inf):

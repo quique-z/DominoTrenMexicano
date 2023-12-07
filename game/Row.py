@@ -1,43 +1,57 @@
+from typing import List
+
+from game import Chip, ChipNodeList
+
+
 class Row:
 
-    def __init__(self, index, center_double, name):
+    def __init__(self, index: int, center_double: int, name: str = None) -> None:
+        self.name = name
+        if not name:
+            self.name = index.__str__()
         self.open_positions = [center_double]
         self.is_empty = True
         self.train = False
         self.index = index
-        self.name = name
 
-    def set_train(self):
+    def set_train(self) -> None:
         self.train = True
 
-    def remove_train(self):
+    def remove_train(self) -> None:
         self.train = False
 
-    def has_train(self):
+    def has_train(self) -> bool:
         return self.train
 
-    def get_open_positions(self):
+    def get_open_positions(self) -> List[int]:
         return self.open_positions
 
-    def add_open_positions(self, position):
-        self.open_positions.append(position)
+    def play_chip(self, chip: Chip, side_to_play: int) -> None:
+        if side_to_play not in self.open_positions:
+            raise Exception("% is not in row's open positions" % side_to_play)
+
+        if not chip.is_double():
+            self.open_positions.remove(side_to_play)
+
+        self.open_positions.append(chip.get_other_side(side_to_play))
         self.is_empty = False
 
-    def swap_open_positions(self, remove, add):
-        self.open_positions.remove(remove)
-        self.open_positions.append(add)
-        self.is_empty = False
+    def play_chip_node_list(self, chip_node_list: ChipNodeList) -> None:
+        while chip_node_list.has_chip_to_play():
+            cn = chip_node_list.get_best_chip_to_play()
+            for chip in cn.get_next_move_as_chip_list():
+                self.play_chip(chip, cn.get_chip_side_to_play())
 
-    def get_index(self):
+    def get_index(self) -> int:
         return self.index
 
-    def get_name(self):
+    def get_name(self) -> str:
         return self.name
 
-    def can_play_many(self):
+    def can_play_many(self) -> bool:
         return self.is_empty
 
-    def __str__(self):
+    def __str__(self) -> str:
         s = ["%s row's contents: " % self.name]
         for i in self.open_positions:
             s.append("%s " % i)

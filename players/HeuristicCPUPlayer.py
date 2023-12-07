@@ -1,9 +1,9 @@
 # This player considers all possible moves and weighs them using a heuristic function. It then chooses the highest ranking move.
-from players.SmartCPUPlayer import SimpleCPUPlayer
 from ai.Heuristic import Heuristic
+from players.CPUPlayer import CPUPlayer
 
 
-class HeuristicAIPlayer(SimpleCPUPlayer):
+class HeuristicCPUPlayer(CPUPlayer):
     def __init__(self, index, names, highest_double, n_chips_per_player):
         super().__init__(index, names[index])
         self.probability_map_list = ProbabilityMapList(names, highest_double, n_chips_per_player, index)

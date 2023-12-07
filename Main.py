@@ -1,28 +1,22 @@
-from ai import SequenceGeneration
-from game import ChipFactory
-from game.GameManager import GameManager
 import logging
-import random
-import math
-import ai.SequenceGeneration
-import game.ChipFactory
-import time
+
+from game.GameManager import GameManager
 
 logging.info = print
 
 chips_to_draw = [12, 12, 12, 12, 12, 10, 9, 8, 8, 7, 7]
 human_py = 0
-basic_py = 0
-simple_py = 4
+random_py = 4
+simple_py = 0
 heuristic_py = 0
-n_players = basic_py + simple_py + heuristic_py + human_py
+n_players = random_py + simple_py + heuristic_py + human_py
 highest_double = 12
 initial_double = highest_double
 historic_winners = [0] * n_players
-names = ["Alice", "Bob", "Charlie", "Dan", "Ernie", "Frank", "George", "Hector", "Indy", "Jane"]
+names = ["Alice", "Bob", "Cindy", "Dan", "Emma", "Frank", "Gina", "Han", "Ivy", "Jane"]
 
-for i in range(1000):
-    game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, basic_py, simple_py, heuristic_py, human_py, names[:n_players])
+for i in range(100):
+    game_manager = GameManager(chips_to_draw[n_players], highest_double, initial_double, random_py, simple_py, heuristic_py, human_py, names[:n_players])
     game_winners = game_manager.play_ai_game()
     for player in game_winners:
         historic_winners[player] += 1

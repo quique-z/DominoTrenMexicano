@@ -1,7 +1,7 @@
 # Interface for a Human Player to play against the AI.
 from game.ChipNode import chip_node_from_string
 from game.ChipNodeList import ChipNodeList
-from players.CPUPlayer import Player
+from players.Player import Player
 
 
 class HumanPlayer(Player):
@@ -9,12 +9,12 @@ class HumanPlayer(Player):
     def can_play(self, board):
         while True:
             try:
-                num = bool(input("Can %s play?" % self.name))
+                can_play = bool(input("Can %s play?" % self.name))
                 break
             except ValueError:
                 print('Expecting True or False')
 
-        print('Good job. The entered number is: ', num)
+        print('Player has chip to play: ', can_play)
 
     def has_chips(self, chips):
         return True

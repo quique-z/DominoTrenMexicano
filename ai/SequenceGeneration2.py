@@ -1,12 +1,8 @@
-import math
-
 from game.Chip import Chip
 from game.ChipNode import ChipNode
 
 
 class SequenceGeneration2:
-    double_zero_value = 50
-    highest_possible_chip = 15
 
     def __init__(self, chips):
         self.vertices = dict()
@@ -61,7 +57,7 @@ class Vertex:
         progress_made = False
 
         for individual_path in paths:
-            cn = ChipNode(Chip([self.number, origin_id]), self.number)
+            cn = ChipNode(Chip(), self.number)
             cn.add_next_node(individual_path.__copy__())
             if cn not in self.paths:
                 self.paths.add(cn)
