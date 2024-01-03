@@ -1,6 +1,6 @@
 # Baseline abstract class for a Player. Both Human and CPU players inherit from here.
 import logging
-from typing import List, Self
+from typing import List, Self, Set
 
 from game import Chip, Board, PlayableChipNode
 
@@ -11,13 +11,13 @@ class Player:
         self.name = name
         if not name:
             self.name = index.__str__()
-        self.chips = []
+        self.chips = set()
         self.index = index
         self.has_won = False
         self.total_points = 0
         self.eligible_to_win = False
 
-    def init_round(self, chips: List[Chip] = None, double_to_skip: int = None) -> None:
+    def init_round(self, chips: Set[Chip] = None, double_to_skip: int = None) -> None:
         self.has_won = False
         self.eligible_to_win = False
         self.chips = chips
@@ -36,14 +36,17 @@ class Player:
                 logging.info("%s wins this round!" % self.name)
 
     def add_chip(self, chip: Chip) -> None:
-        self.chips.append(chip)
+        self.chips.add(chip)
         logging.info("%s draws: %s" % (self.name, chip.__str__()))
 
-    def remove_chips(self, chips: List[Chip]) -> None:
+    def remove_chips(self, chips: Set[Chip]) -> None:
         raise NotImplementedError
 
     def can_play(self, board: Board) -> bool:
-        return NotImplemented
+        if not self.chips:
+            logging.info("%s doesn't have chips, but it is their turn." % self.name)
+            return False
+        return True
 
     def play(self, board: Board, players: List[Self]) -> PlayableChipNode:
         return NotImplemented

@@ -13,16 +13,13 @@ class CPUPlayer(Player):
         self.say_one = True
         self.remove_train = True
 
-    def remove_chips(self, chips: List[Chip]) -> None:
+    def remove_chips(self, chips: Set[Chip]) -> None:
         for chip in chips:
             self.chips.remove(chip)
 
     def can_play(self, board: Board) -> bool:
-        # TODO: Maybe can be moved to super class
-        if len(self.chips) == 0:
-            logging.info("%s doesn't have chips, but it is their turn." % self.name)
+        if not super().can_play(board):
             return False
-
         if board.is_forced():
             return self.can_play_forced(board)
         else:
@@ -44,10 +41,10 @@ class CPUPlayer(Player):
         return self.can_play_numbers(numbers)
 
     def can_play_numbers(self, numbers: Set[int]) -> bool:
-        available_numbers = []
+        available_numbers = set()
         for chip in self.chips:
-            available_numbers.extend(chip.get_sides())
-        return bool(numbers.intersection(set(available_numbers)))
+            available_numbers.update(chip.get_sides())
+        return bool(numbers.intersection(available_numbers))
 
     def get_current_points(self) -> int:
         total = 0

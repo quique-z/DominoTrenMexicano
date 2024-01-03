@@ -24,7 +24,7 @@ class ChipNodeList:
             if cn.get_next_move_value() > max_value:
                 max_value = cn.get_next_move_value()
                 best_chip_node = cn
-        self.remove_node(best_chip_node)
+        self.remove_node_keep_tail(best_chip_node)
         return best_chip_node.get_next_move_as_node()
 
     def has_number_to_play_immediately(self, numbers: Set[int]) -> bool:
@@ -40,13 +40,27 @@ class ChipNodeList:
             if cn.get_chip_side_to_play() in numbers and cn.get_next_move_value() > max_value:
                 max_value = cn.get_next_move_value()
                 best_chip_node = cn
-        self.remove_node(best_chip_node)
+        self.remove_node_keep_tail(best_chip_node)
         return best_chip_node.get_next_move_as_node()
+
+    def get_all_chips(self) -> ChipNode:
+        if len(self.chip_nodes) != 1:
+            raise Exception("Can only play all chips if root is a single element.")
+        chip_node = self.chip_nodes[0]
+        self.chip_nodes = []
+        return chip_node
+
+    def get_all_chips_minus_last(self) -> ChipNode:
+        chip_node = self.get_all_chips()
+        last = chip_node.get_last()
+        self.chip_nodes = [last]
+        chip_node.remove_chip_from_tail(last.get_chip())
+        return chip_node
 
     def has_chip_to_play(self) -> bool:
         return len(self.chip_nodes) > 0
 
-    def remove_node(self, chip_node: ChipNode) -> None:
+    def remove_node_keep_tail(self, chip_node: ChipNode) -> None:
         removed = False
 
         for cn in self.chip_nodes:
@@ -63,10 +77,10 @@ class ChipNodeList:
         if tail:
             self.chip_nodes.extend(tail)
 
-    def get_chipset(self) -> List[Chip]:
-        chipset = []
+    def get_chipset(self) -> Set[Chip]:
+        chipset = set()
         for cn in self.chip_nodes:
-            chipset.extend(cn.get_chipset())
+            chipset.update(cn.get_chipset())
         return chipset
 
     def get_chipset_value(self) -> int:
@@ -78,7 +92,7 @@ class ChipNodeList:
     def get_chipset_weighted_value(self) -> int:
         value = 0
         for cn in self.chip_nodes:
-            value += cn.get_chain_value()
+            value += cn.get_chain_weighted_value()
         return value
 
     def __len__(self) -> int:

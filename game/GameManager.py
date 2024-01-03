@@ -9,7 +9,7 @@ from game.Board import Board
 from players.HeuristicCPUPlayer import HeuristicCPUPlayer
 from players.HumanPlayer import HumanPlayer
 from players.RandomCPUPlayer import RandomCPUPlayer
-from players.SmartCPUPlayer import SmartCPUCPUPlayer
+from players.SmartCPUPlayer import SmartCPUPlayer
 
 
 class GameManager:
@@ -33,7 +33,7 @@ class GameManager:
         for i in range(random_py):
             self.players.append(RandomCPUPlayer(i, player_names[i]))
         for i in range(len(self.players), len(self.players) + simple_py):
-            self.players.append(SmartCPUCPUPlayer(i, player_names[i]))
+            self.players.append(SmartCPUPlayer(i, player_names[i]))
         for i in range(len(self.players), len(self.players) + heuristic_py):
             self.players.append(HeuristicCPUPlayer(i, player_names[i], highest_double, chips_per_player))
         for i in range(len(self.players), len(self.players) + human_py):
@@ -46,7 +46,7 @@ class GameManager:
         random.shuffle(chips)
 
         for player in self.players:
-            starting_chips = [chips.pop() for _ in range(self.chips_per_player)]
+            starting_chips = {chips.pop() for _ in range(self.chips_per_player)}
             player.init_round(starting_chips, self.current_double)
 
         self.board = Board(self.n_players, self.current_double, chips, self.player_names)
@@ -128,7 +128,7 @@ class GameManager:
     def play(self) -> None:
         active_player = self.players[self.turn]
         logging.info("%s plays: " % active_player.get_name())
-        playable_chip_node = active_player.play(self.board, self.players)  # TODO: Can reduce this to ChipNode instead of CNL?
+        playable_chip_node = active_player.play(self.board, self.players)
         self.validate_play(playable_chip_node)
         self.make_move(playable_chip_node)
         if playable_chip_node.ends_in_double():
@@ -172,6 +172,7 @@ class GameManager:
         self.board.play_playable_chip_node(playable_chip_node)
 
     def validate_play(self, playable_chip_node: PlayableChipNode) -> None:
+        # TODO: validate if a player passes??
         chip_node = playable_chip_node.get_chip_node()
         row = playable_chip_node.get_row()
 

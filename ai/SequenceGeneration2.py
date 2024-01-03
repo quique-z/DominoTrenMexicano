@@ -15,7 +15,6 @@ class SequenceGeneration2:
                 if v.get_number() in chip:
                     v.add_neighbor(chip)
 
-
     def find_longest_chain(self):
         progress_made = True
         while progress_made:
@@ -25,9 +24,6 @@ class SequenceGeneration2:
                     neighbor_vertex = self.vertices[neighbor_id]
                     if neighbor_vertex.update_paths(origin_vertex.get_number(), origin_vertex.get_paths()):
                         progress_made = True
-
-
-
 
 
 class Vertex:

@@ -73,6 +73,9 @@ class Board:
     def has_train(self, index: int) -> bool:
         return self.rows[index].has_train()
 
+    def get_number_of_players(self) -> int:
+        return self.n_players
+
     def __str__(self) -> str:
         s = ["Center double: %s" % self.center_double,
              "\nPlayers: %s" % len(self.rows),

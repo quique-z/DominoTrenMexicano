@@ -22,12 +22,12 @@ class RandomCPUPlayer(CPUPlayer):
         for row in permutation(board.get_rows()):
             if row.get_index() == self.index or (row.has_train() and not board.has_train(self.index)):
                 for open_number in permutation(row.get_open_positions()):
-                    for chip in permutation(self.chips):
+                    for chip in permutation(list(self.chips)):
                         if open_number in chip:
                             cn = ChipNode(chip, open_number)
                             logging.info(self.name, " plays :", chip)
                             if chip.is_double():
-                                for new_chip in permutation(self.chips):
+                                for new_chip in permutation(list(self.chips)):
                                     if open_number in new_chip and chip != new_chip:
                                         logging.info(self.name, " follows the double with :", new_chip)
                                         cn.add_next_node(ChipNode(new_chip, open_number))
@@ -36,7 +36,7 @@ class RandomCPUPlayer(CPUPlayer):
 
     def play_forced(self, board: Board) -> PlayableChipNode:
         for number in board.get_forced_numbers():
-            for chip in permutation(self.chips):
+            for chip in permutation(list(self.chips)):
                 if number in chip:
                     logging.info("%s plays :%s" % (self.name, chip))
                     cn = ChipNode(chip, number)
