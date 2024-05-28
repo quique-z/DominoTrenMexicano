@@ -1,6 +1,5 @@
 import logging
 
-from ai.SequenceGeneration import time_sequence_generation
 from game.GameManager import GameManager
 
 logging.info = print

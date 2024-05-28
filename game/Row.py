@@ -53,8 +53,8 @@ class Row:
 
     def __str__(self) -> str:
         s = [f"{self.name} row's contents: "]
-        for i in self.open_positions:
-            s.append(f"{i} ")
+        s.extend(f"{op} " for op in self.open_positions)
+
         if self.train:
-            s.append(f"and has train")
+            s.append(f"and has train.")
         return "".join(s)

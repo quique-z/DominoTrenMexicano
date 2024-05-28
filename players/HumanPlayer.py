@@ -42,8 +42,12 @@ class HumanPlayer(Player):
         return set()
 
     def play(self, board: Board, players: List[Player]) -> PlayableChipNode:
-        row = number_input("Row to play")
+        row_prompt = [f"Row to play\n"]
+        row_prompt.extend(f"{player.get_index()}: {player.get_name()}" for player in players)
+        row = number_input("".join(row_prompt))
+
         open_position = number_input("Open position to play chips on.")
+
         chip_node = chip_node_input(open_position, empty_allowed=False)
         return PlayableChipNode(chip_node, row)
 

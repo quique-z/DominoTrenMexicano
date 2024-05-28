@@ -1,4 +1,4 @@
-from typing import List
+from typing import Set
 
 from game import ChipNode
 
@@ -18,7 +18,7 @@ class PlayableChipNode:
     def ends_in_double(self) -> bool:
         return len(self.chip_node.get_ending_doubles()) > 0
 
-    def get_ending_doubles(self) -> List[int]:
+    def get_ending_doubles(self) -> Set[int]:
         return self.chip_node.get_ending_doubles()
 
     def __str__(self) -> str:

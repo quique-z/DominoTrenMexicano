@@ -7,23 +7,20 @@ from game.Row import Row
 class Board:
 
     def __init__(self, n_players: int, center_chip_double: int, chips: List[Chip], player_names: List[str] = None) -> None:
-        if not player_names:
-            player_names = range(n_players)
+        player_names = player_names if player_names else [str(i) for i in range(n_players)]
+        self.rows = [Row(i, center_chip_double, player_names[i]) for i in range(n_players)]
         self.center_double = center_chip_double
-        self.n_players = n_players
-        self.draw_pile = chips
-        self.forced = False
-        self.forced_row = -1
         self.forced_numbers = set()
+        self.n_players = n_players
         self.forced_culprit = -1
-        self.rows = []
-        for i in range(n_players):
-            self.rows.append(Row(i, center_chip_double, player_names[i]))
+        self.draw_pile = chips
+        self.forced_row = -1
+        self.forced = False
 
     def play_playable_chip_node(self, playable_chip_node: PlayableChipNode) -> None:
         self.rows[playable_chip_node.get_row()].play_chip_node(playable_chip_node.get_chip_node())
 
-    def set_forced(self, row: int, numbers: List[int], culprit: int) -> None:
+    def set_forced(self, row: int, numbers: Set[int], culprit: int) -> None:
         self.forced = True
         self.forced_row = row
         self.set_train(culprit)
@@ -78,8 +75,7 @@ class Board:
              f"Players: {self.n_players} \n"
              f"Chips in draw pile: {len(self.draw_pile)}"]
 
-        for row in self.rows:
-            s.append(f"\n{str(row)}")
+        s.extend(f"\n{str(row)}" for row in self.rows)
 
         if self.forced:
             s.append(f"\nAnd board is forced to row {self.forced_row}")

@@ -78,7 +78,6 @@ def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, 
     for i in range(5, max_hand_size):
         total_time = 0
         max_time = -math.inf
-        min_time = math.inf
 
         for j in range(iterations):
             pool = ChipFactory.create_chips(highest_double, human_game=False)
@@ -92,7 +91,5 @@ def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, 
             total_time += run_time
             if run_time > max_time:
                 max_time = run_time
-            if run_time < min_time:
-                min_time = run_time
 
-        print(f"Average time to order {i} chips is: {total_time/iterations:.0f}ms. Max: {max_time:.0f}ms, Min: {min_time:.0f}ms")
+        print(f"Average time to order {i} chips is: {total_time / iterations:.0f}ms. Max: {max_time:.0f}ms.")

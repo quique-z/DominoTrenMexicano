@@ -250,7 +250,7 @@ class GameManager:
         # TODO: Notify players
 
     def play_ai_game(self) -> List[int]:
-        millis = time.time() * 1000
+        start_time = time.time() * 1000
 
         while self.has_next_round():
             self.init_round()
@@ -259,24 +259,21 @@ class GameManager:
                 logging.info(self)
             self.end_round()
 
-        logging.info(self)
-        print(f"{time.time() * 1000 - millis:.0f} ms")
+        end_time = time.time() * 1000
 
-        winners = []
-        for player in self.global_winner:
-            winners.append(player.get_index())
-        return winners
+        logging.info(self)
+        print(f"{end_time - start_time:.0f} ms")
+
+        return [player.get_index() for player in self.global_winner]
 
     def __str__(self) -> str:
         s = [f"the board looks like this:\n{self.board} \nPlayers: "]
-        for player in self.players:
-            s.append(f"\n{str(player)}")
+        s.extend(f"\n{str(player)}" for player in self.players)
 
         s.append(f"\nPlayer's turn: {self.players[self.turn].get_name()}")
 
         s.append("Player(s) in the lead: ")
-        for player in self.global_winner:
-            s.append(f"\n{player.get_name()}")
+        s.extend(f"\n{player.get_name()}" for player in self.global_winner)
 
         s.append("\n\n\n")
         return "".join(s)

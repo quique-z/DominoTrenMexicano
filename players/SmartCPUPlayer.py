@@ -368,7 +368,7 @@ class SmartCPUPlayer(CPUPlayer):
                                 best_row = row.get_index()
                                 best_chip_node = current_chip_node
         if not best_chip_node:
-            raise Exception("Error")
+            raise Exception(f"Player {self.name} did not find a chip to play despite having one.")
         return PlayableChipNode(best_chip_node, best_row)
 
 

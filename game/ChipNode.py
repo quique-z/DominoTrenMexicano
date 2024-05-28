@@ -137,7 +137,7 @@ class ChipNode:
             value += self.next2.get_chain_value()
         return value
 
-    def get_chain_weighted_value(self) -> int:
+    def get_chain_weighted_value(self) -> float:
         value = self.value
         if self.next:
             value += self.next.get_chain_weighted_value()
@@ -145,18 +145,18 @@ class ChipNode:
             value += self.next2.get_chain_weighted_value()
         return value
 
-    def get_ending_doubles(self) -> List[int]:
-        doubles = []
+    def get_ending_doubles(self) -> Set[int]:
+        doubles = set()
         if self.is_chip_double() and not self.next and not self.next2:
-            doubles.append(self.get_chip_side_to_play())
+            doubles.add(self.get_chip_side_to_play())
         if self.next:
-            doubles += self.next.get_ending_doubles()
+            doubles.update(self.next.get_ending_doubles())
         if self.next2:
-            doubles += self.next2.get_ending_doubles()
+            doubles.update(self.next2.get_ending_doubles())
         return doubles
 
     def get_depth(self) -> int:
-        depth = 1 if self.is_chip_double() and not (self.next or self.next2) else 0
+        depth = 0 if self.is_chip_double() and (self.next or self.next2) else 1
 
         if self.next:
             depth += self.next.get_depth()

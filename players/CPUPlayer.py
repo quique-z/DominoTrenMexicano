@@ -83,6 +83,5 @@ class CPUPlayer(Player):
 
     def __str__(self) -> str:
         s = [f"{self.name}: Round points: {self.get_current_points()}, Total points: {self.total_points}, Chips: "]
-        for chip in self.chips:
-            s.append(f"{chip} ")
+        s.extend(f"{chip} " for chip in self.chips)
         return "".join(s)

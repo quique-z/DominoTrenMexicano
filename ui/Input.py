@@ -43,12 +43,15 @@ def chip_input(prompt: str, empty_allowed: bool = True) -> Optional[RevealedChip
 
 
 def chip_node_input(open_position: int, empty_allowed: bool = True) -> Optional[ChipNode]:
+    chip_node = None
     while True:
         try:
             chip = chip_input(f"Enter chip to play on position {open_position}. Leave blank when done.", empty_allowed)
 
             if not chip:
-                return None
+                if chip_node or empty_allowed:
+                    return chip_node
+                raise ValueError
 
             chip_node = ChipNode(chip, open_position)
 

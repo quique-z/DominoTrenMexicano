@@ -34,12 +34,12 @@ class RandomCPUPlayer(CPUPlayer):
                             logging.info(f"{self.name} plays {chip}")
 
                             if chip.is_double():
-                                if new_chip := self.follow_up(chip, open_number):
+                                if new_chip := self.follow_up_double(chip, open_number):
                                     cn.add_next_node(ChipNode(new_chip, open_number))
 
                             return PlayableChipNode(cn, row.get_index())
 
-    def follow_up(self, original_chip: Chip, open_number: int) -> Optional[Chip]:
+    def follow_up_double(self, original_chip: Chip, open_number: int) -> Optional[Chip]:
         for new_chip in permutation(list(self.chips)):
             if open_number in new_chip and original_chip != new_chip:
                 logging.info(f"{self.name} follows the double with: {new_chip}")
