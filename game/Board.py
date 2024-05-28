@@ -20,9 +20,6 @@ class Board:
         for i in range(n_players):
             self.rows.append(Row(i, center_chip_double, player_names[i]))
 
-    def play_chip(self, chip_to_play: Chip, side_to_play: int, row_to_play: int) -> None:
-        self.rows[row_to_play].play_chip(chip_to_play, side_to_play)
-
     def play_playable_chip_node(self, playable_chip_node: PlayableChipNode) -> None:
         self.rows[playable_chip_node.get_row()].play_chip_node(playable_chip_node.get_chip_node())
 
@@ -59,7 +56,7 @@ class Board:
         return self.rows
 
     def can_draw(self) -> bool:
-        return len(self.draw_pile) > 0
+        return bool(self.draw_pile)
 
     def draw(self) -> Chip:
         return self.draw_pile.pop()
@@ -77,12 +74,15 @@ class Board:
         return self.n_players
 
     def __str__(self) -> str:
-        s = ["Center double: %s" % self.center_double,
-             "\nPlayers: %s" % len(self.rows),
-             "\nChips in draw pile: %s" % len(self.draw_pile)]
+        s = [f"Center double: {self.center_double} \n"
+             f"Players: {self.n_players} \n"
+             f"Chips in draw pile: {len(self.draw_pile)}"]
+
         for row in self.rows:
-            s.append("\n%s" % row.__str__())
+            s.append(f"\n{str(row)}")
+
         if self.forced:
-            s.append("\nAnd board is forced to row " + self.forced_row.__str__())
-            s.append("\nOn numbers " + self.forced_numbers.__str__())
-        return ''.join(s)
+            s.append(f"\nAnd board is forced to row {self.forced_row}")
+            s.append(f"\nOn numbers {self.forced_numbers}")
+
+        return "".join(s)

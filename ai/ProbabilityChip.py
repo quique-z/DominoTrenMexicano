@@ -19,7 +19,7 @@ class ProbabilityChip:
     def remove_numbers(self, numbers):
         for chip in self.chips:
             for n in numbers:
-                if chip.__contains__(n):
+                if n in chip:
                     self.chips.remove(chip)
                     continue
 

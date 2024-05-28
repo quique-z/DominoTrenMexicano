@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Self
 
 
 class Chip:
@@ -6,27 +6,27 @@ class Chip:
     highest_possible_chip = 15
 
     def get_side_a(self) -> int:
-        pass
+        return NotImplemented
 
     def get_side_b(self) -> int:
-        pass
+        return NotImplemented
 
     def get_sides(self) -> List[int]:
-        pass
+        return NotImplemented
 
     def get_other_side(self, n: int) -> int:
-        pass
+        return NotImplemented
 
     def is_double(self) -> bool:
-        pass
+        return NotImplemented
 
     def get_value(self) -> int:
-        pass
+        return NotImplemented
 
     def __contains__(self, n: int) -> bool:
         return NotImplemented
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: Self) -> bool:
         return NotImplemented
 
     def __str__(self) -> str:

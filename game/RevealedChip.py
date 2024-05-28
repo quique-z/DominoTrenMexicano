@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Self
 
 from game.Chip import Chip
 
@@ -8,11 +8,11 @@ class RevealedChip(Chip):
     def __init__(self, numbers: List[int]) -> None:
         super().__init__()
         if not numbers or len(numbers) != 2:
-            raise Exception("A chip needs 2 numbers to be created.")
+            raise ValueError("A chip needs 2 numbers to be created.")
 
         for n in numbers:
             if not 0 <= n <= Chip.highest_possible_chip:
-                raise Exception("Numbers in chip need to be between 0 and %s" % self.highest_possible_chip)
+                raise ValueError(f"Numbers in chip need to be between 0 and {self.highest_possible_chip}")
 
         self.numbers = numbers
         self.numbers.sort()
@@ -31,7 +31,7 @@ class RevealedChip(Chip):
             return self.get_side_b()
         if self.get_side_b() == n:
             return self.get_side_a()
-        raise Exception("This chip does not contain number %s" % n)
+        raise Exception(f"this chip does not contain number {n}")
 
     def is_double(self) -> bool:
         return self.get_side_a() == self.get_side_b()
@@ -43,13 +43,13 @@ class RevealedChip(Chip):
     def __contains__(self, n: int) -> bool:
         return n in self.numbers
 
-    def __eq__(self, other: object) -> bool:
+    def __eq__(self, other: Self) -> bool:
         if not isinstance(other, Chip):
             return NotImplemented
-        return self.get_side_a() == other.get_side_a() and self.get_side_b() == other.get_side_b()
+        return self.__dict__ == other.__dict__
 
     def __str__(self) -> str:
-        return "[%s|%s]" % (self.get_side_a(), self.get_side_b())
+        return f"[{self.get_side_a()}|{self.get_side_b()}]"
 
     def __hash__(self) -> int:
         return hash(hash(self.get_side_a()) + hash(self.get_side_b()))

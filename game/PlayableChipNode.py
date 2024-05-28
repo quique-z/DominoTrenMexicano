@@ -22,4 +22,4 @@ class PlayableChipNode:
         return self.chip_node.get_ending_doubles()
 
     def __str__(self) -> str:
-        return "On row %s I play %s" % (self.row, self.chip_node.__str__())
+        return f"On row {self.row} I play {self.chip_node}"

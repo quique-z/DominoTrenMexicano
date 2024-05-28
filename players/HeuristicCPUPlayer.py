@@ -33,5 +33,5 @@ class HeuristicCPUPlayer(SmartCPUPlayer):
         self.probability_map_list.chip_was_drawn_by_ai(chip)
 
     def __str__(self):
-        s = [super().__str__(), self.probability_map_list.__str__()]
-        return ''.join(s)
+        s = [str(super()), str(self.probability_map_list)]
+        return "".join(s)

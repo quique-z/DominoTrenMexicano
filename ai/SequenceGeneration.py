@@ -1,6 +1,9 @@
 import math
+import random
+import time
 from typing import List, Set, Optional
 
+from game import ChipFactory
 from game.Chip import Chip
 from game.ChipNode import ChipNode
 from game.ChipNodeList import ChipNodeList
@@ -8,7 +11,7 @@ from game.ChipNodeList import ChipNodeList
 front_loaded_index = 0.9999
 
 
-def generate_sequence(open_positions: List[int], chips: Set[Chip], heuristic_value_per_chip: int = 0, max_depth: int = math.inf) -> ChipNodeList:
+def generate_sequence(open_positions: List[int], chips: Set[Chip], heuristic_value_per_chip: float = 0, max_depth: int = math.inf) -> ChipNodeList:
     positions_to_consider = open_positions.copy()
     chip_node_list = ChipNodeList()
     new_chips = chips.copy()
@@ -37,7 +40,7 @@ def generate_sequence(open_positions: List[int], chips: Set[Chip], heuristic_val
     return chip_node_list
 
 
-def generate_sequence_recursive(open_position: int, chips: Set[Chip], heuristic_value_per_chip: int = 0, max_depth: int = math.inf) -> Optional[ChipNode]:
+def generate_sequence_recursive(open_position: int, chips: Set[Chip], heuristic_value_per_chip: float = 0, max_depth: int = math.inf) -> Optional[ChipNode]:
     if not chips or max_depth <= 0:
         return None
 
@@ -69,3 +72,27 @@ def generate_sequence_recursive(open_position: int, chips: Set[Chip], heuristic_
                 best_chip_node.add_next_node(sequence2)
 
     return best_chip_node
+
+
+def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, iterations: int = 10) -> None:
+    for i in range(5, max_hand_size):
+        total_time = 0
+        max_time = -math.inf
+        min_time = math.inf
+
+        for j in range(iterations):
+            pool = ChipFactory.create_chips(highest_double, human_game=False)
+            open_positions = [random.randrange(highest_double) for _ in range(random.randint(1, 4))]
+            chips = {pool.pop() for _ in range(i)}
+
+            start = time.time() * 1000
+            generate_sequence(open_positions, chips, 12.55)
+            run_time = time.time() * 1000 - start
+
+            total_time += run_time
+            if run_time > max_time:
+                max_time = run_time
+            if run_time < min_time:
+                min_time = run_time
+
+        print(f"Average time to order {i} chips is: {total_time/iterations:.0f}ms. Max: {max_time:.0f}ms, Min: {min_time:.0f}ms")

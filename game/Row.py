@@ -7,13 +7,11 @@ from game.ChipNodeList import ChipNodeList
 class Row:
 
     def __init__(self, index: int, center_double: int, name: str = None) -> None:
-        self.name = name
-        if not name:
-            self.name = index.__str__()
+        self.name = name if name else str(index)
         self.open_positions = [center_double]
         self.is_empty = True
-        self.train = False
         self.index = index
+        self.train = False
 
     def set_train(self) -> None:
         self.train = True
@@ -29,7 +27,7 @@ class Row:
 
     def play_chip(self, chip: Chip, side_to_play: int) -> None:
         if side_to_play not in self.open_positions:
-            raise Exception("% is not in row's open positions" % side_to_play)
+            raise Exception(f"{side_to_play} is not in row's open positions: {self.open_positions}")
 
         if not chip.is_double():
             self.open_positions.remove(side_to_play)
@@ -54,9 +52,9 @@ class Row:
         return self.is_empty
 
     def __str__(self) -> str:
-        s = ["%s row's contents: " % self.name]
+        s = [f"{self.name} row's contents: "]
         for i in self.open_positions:
-            s.append("%s " % i)
+            s.append(f"{i} ")
         if self.train:
-            s.append("and has train")
-        return ''.join(s)
+            s.append(f"and has train")
+        return "".join(s)

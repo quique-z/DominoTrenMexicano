@@ -38,37 +38,37 @@ class SmartCPUPlayer(CPUPlayer):
 
     def play(self, board: Board, players: List[Player]) -> PlayableChipNode:
         if self.needs_to_update_sequence or board.has_train(self.index):
-            logging.info("%s is updating sequence" % self.name)
+            logging.info(f"{self.name} is updating sequence")
             self.update_sequence(board)
         if board.is_forced():
-            logging.info("%s is forced" % self.name)
+            logging.info(f"{self.name} is forced")
             return self.play_forced(board)
         if self.can_play_all_my_chips_if_i_play_many(board):
-            logging.info("%s is playing all their chips" % self.name)
-            return self.play_first(True)
+            logging.info(f"{self.name} is playing all their chips")
+            return self.play_first(play_all=True)
         if self.danger_of_other_players_winning(players):
-            logging.info("%s is playing many points quickly" % self.name)
+            logging.info(f"{self.name} is playing many points quickly")
             return self.play_many_points_quickly(board, other_players_min_chip_count(players))
         if self.can_play_cheaply_elsewhere(board):
-            logging.info("%s is playing elsewhere" % self.name)
+            logging.info(f"{self.name} is playing elsewhere")
             return self.play_cheaply_elsewhere(board)
         if self.can_play_many(board):
-            logging.info("%s is playing many" % self.name)
+            logging.info(f"{self.name} is playing many")
             return self.play_first(self.should_play_all(board))
         if self.chip_node_list.has_chip_to_play():
-            logging.info("%s is playing on their row, only one chip" % self.name)
+            logging.info(f"{self.name} is playing on their row, only one chip")
             return self.play_self()
         if self.can_play_self(board):
             raise Exception("What's going on?")
-        logging.info("%s is playing elsewhere." % self.name)
+        logging.info(f"{self.name} is playing elsewhere.")
         return self.play_cheaply_elsewhere(board)
 
     def play_forced(self, board: Board) -> PlayableChipNode:
         if board.get_forced_row_index() == self.index:
-            logging.info("%s playing forced self" % self.name)
+            logging.info(f"{self.name} playing forced self")
             return self.play_forced_self(board)
         else:
-            logging.info("%s playing forced elsewhere" % self.name)
+            logging.info(f"{self.name} playing forced elsewhere")
             return self.play_forced_elsewhere(board)
 
     # TODO: Test with sequence.get_chipset_weighted_value()
@@ -291,7 +291,7 @@ class SmartCPUPlayer(CPUPlayer):
 
                 can_play_double_alone = True
                 for chip2 in self.chips:
-                    if chip != chip2 and chip2.__contains__(chip.get_side_a()):
+                    if chip != chip2 and chip.get_side_a() in chip2:
                         can_play_double_alone = False
                         break
 

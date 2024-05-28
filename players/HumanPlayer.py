@@ -1,55 +1,51 @@
 # Interface for a Human Player to play against the AI.
-from game.ChipNode import chip_node_from_string
-from game.ChipNodeList import ChipNodeList
+from typing import List, Set
+
+from game.Board import Board
+from game.Chip import Chip
+from game.PlayableChipNode import PlayableChipNode
 from players.Player import Player
+from ui.Input import boolean_input, number_input, chip_node_input
 
 
 class HumanPlayer(Player):
 
-    def can_play(self, board):
-        while True:
-            try:
-                can_play = bool(input("Can %s play?" % self.name))
-                break
-            except ValueError:
-                print('Expecting True or False')
+    def add_chip(self, chip: Chip) -> None:
+        self.chips.add(chip)
 
-        print('Player has chip to play: ', can_play)
+    def remove_chips(self, chips: Set[Chip]) -> None:
+        for _ in range(len(chips)):
+            self.chips.pop()
 
-    def has_chips(self, chips):
+    def can_play(self, board: Board) -> bool:
+        if not super().can_play(board):
+            return False
+
+        return boolean_input(f"Can {self.name} play?")
+
+    def get_current_points(self) -> int:
+        return -1
+
+    def add_up_points(self) -> None:
+        self.total_points += number_input(f"total points for {self.name}")
+
+    def will_say_one(self) -> bool:
+        return boolean_input(f"Did {self.name} say one?")
+
+    def will_remove_train(self) -> bool:
+        return boolean_input(f"Did {self.name} remove their train?")
+
+    def has_chips(self, chips: List[Chip]) -> bool:
         return True
 
-    def play(self, board, players):
-        while True:
-            try:
-                row = int(input("Row to play"))
-                break
-            except ValueError:
-                print("Not a number")
+    def get_chips(self) -> Set[Chip]:
+        return set()
 
-        cnl = ChipNodeList()
-        print("Enter chips, one arm per line.")
-        while True:
-            try:
-                number = int(input("Number to play next arm of chips on"))
-                cn = chip_node_from_string(input("Next series of Ch").split(), number)
-                if cn:
-                    cnl.add(cn)
-                else:
-                    break
-            except Exception:
-                print("Invalid Chip Node")
+    def play(self, board: Board, players: List[Player]) -> PlayableChipNode:
+        row = number_input("Row to play")
+        open_position = number_input("Open position to play chips on.")
+        chip_node = chip_node_input(open_position, empty_allowed=False)
+        return PlayableChipNode(chip_node, row)
 
-        return [cnl, row]
-
-    def add_up_points(self):
-        while True:
-            try:
-                number = int(input("Total points for %s" % self.name))
-                break
-            except ValueError:
-                print("Invalid input.")
-
-        return number
-
-
+    def __str__(self) -> str:
+        return f"{self.name}: Round points: Unknown, Total points: {self.total_points}, Chips: {len(self.chips)} unknown chips."

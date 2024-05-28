@@ -5,7 +5,7 @@ from game.Chip import Chip
 
 class ChipNode:
 
-    def __init__(self, chip: Chip, side_to_play: int, heuristic_value_per_chip: int = 0) -> None:
+    def __init__(self, chip: Chip, side_to_play: int, heuristic_value_per_chip: float = 0) -> None:
         self.next = None
         self.next2 = None
         self.chip = chip
@@ -13,16 +13,16 @@ class ChipNode:
         self.value = chip.get_value() + heuristic_value_per_chip
 
     def add_next_node(self, chip_node: Self) -> None:
-        if chip_node is None:
+        if not chip_node:
             return
 
         if self.next and (self.next2 or not self.is_chip_double()):
-            raise Exception("Can't add a node, next is already occupied.")
+            raise ValueError("Can't add a node, next is already occupied.")
 
         if chip_node.get_chip_side_to_play() != self.chip.get_other_side(self.side_to_play):
-            raise Exception("Can't add a node, next chip's number does not match this chip's other side.")
+            raise ValueError("Can't add a node, next chip's number does not match this chip's other side.")
 
-        if self.is_chip_double() and self.next:
+        if self.next:
             self.next2 = chip_node
         else:
             self.next = chip_node
@@ -63,21 +63,20 @@ class ChipNode:
         if not self.next:
             return None
 
-        if self.is_chip_double():
-            if not self.next2:
-                return [self.next.next] if self.next.next else None
-            elif self.next.get_next_move_value() > self.next2.get_next_move_value():
-                return [self.next.next, self.next2] if self.next.next else [self.next2]
-            elif self.next2.next:
-                return [self.next2.next, self.next]
+        if not self.is_chip_double():
+            return [self.next]
 
-        return [self.next]
+        if not self.next2:
+            return [self.next.next] if self.next.next else None
+        elif self.next.get_next_move_value() > self.next2.get_next_move_value():
+            return [self.next.next, self.next2] if self.next.next else [self.next2]
+        else:
+            return [self.next2.next, self.next] if self.next2.next else [self.next]
 
     def get_last_value(self) -> int:
         return self.get_last().get_chain_value()
 
     def get_last(self) -> Self:
-        # No choice but to keep last chip in sequence.
         if not self.next and not self.next2:
             # TODO: If last chip is lone double, it might be worth it to treat it differently.
             return self
@@ -96,7 +95,7 @@ class ChipNode:
         if bool(self.next) ^ bool(self.next2):  # Single tail one side
             return self.next.get_last() if self.next else self.next2.get_last()
 
-        # Two next's, keep lower value one.
+        # Two next"s, keep lower value one.
         return self.next.get_last() if self.next.get_last_value() < self.next2.get_last_value() else self.next2.get_last()
 
     def remove_chip_from_tail(self, chip: Chip) -> None:
@@ -158,6 +157,7 @@ class ChipNode:
 
     def get_depth(self) -> int:
         depth = 1 if self.is_chip_double() and not (self.next or self.next2) else 0
+
         if self.next:
             depth += self.next.get_depth()
         if self.next2:
@@ -165,11 +165,11 @@ class ChipNode:
         return depth
 
     def __contains__(self, value) -> bool:
-        if self.chip.__contains__(value):
+        if value in self.chip:
             return True
-        elif self.next and self.next.__contains__(value):
+        elif self.next and value in self.next:
             return True
-        elif self.next2 and self.next2.__contains__(value):
+        elif self.next2 and value in self.next2:
             return True
         return False
 
@@ -185,19 +185,9 @@ class ChipNode:
         return len(self.get_chipset())
 
     def __str__(self) -> str:
-        s = ["On position %s I play this chip: %s\n" % (self.side_to_play.__str__(), self.chip.__str__())]
+        s = [f"On position {self.side_to_play} I play this chip: {self.chip}\n"]
         if self.next:
-            s.append(self.next.__str__())
+            s.append(str(self.next))
         if self.next2:
-            s.append(self.next2.__str__())
-        return ''.join(s)
-
-
-def chip_node_from_string(string, number) -> Optional[ChipNode]:
-    if not string:
-        return None
-
-    cn = ChipNode(Chip(), number)
-    cn.next = chip_node_from_string(string[1:], number)
-
-    return cn
+            s.append(str(self.next2))
+        return "".join(s)

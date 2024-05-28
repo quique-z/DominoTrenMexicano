@@ -71,4 +71,4 @@ class Vertex:
         return hash(self.number)
 
     def __str__(self):
-        return "Vertex number %s" % self.number
+        return f"Vertex number {self.number}"

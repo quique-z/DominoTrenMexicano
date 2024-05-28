@@ -8,14 +8,12 @@ from game import Chip, Board, PlayableChipNode
 class Player:
 
     def __init__(self, index: int, name: str = None) -> None:
-        self.name = name
-        if not name:
-            self.name = index.__str__()
-        self.chips = set()
-        self.index = index
-        self.has_won = False
-        self.total_points = 0
+        self.name = name if name else str(index)
         self.eligible_to_win = False
+        self.total_points = 0
+        self.has_won = False
+        self.index = index
+        self.chips = set()
 
     def init_round(self, chips: Set[Chip] = None, double_to_skip: int = None) -> None:
         self.has_won = False
@@ -26,25 +24,25 @@ class Player:
         pass
 
     def end_turn(self, board: Board) -> None:
-        if not self.chips:
-            if board.get_forced_culprit_index() == self.index:
-                self.eligible_to_win = True
-                logging.info(
-                    "%s is out of chips but the board is forced because of them, so they can't win yet." % self.name)
-            else:
-                self.has_won = True
-                logging.info("%s wins this round!" % self.name)
+        if self.chips:
+            return
+
+        if board.get_forced_culprit_index() == self.index:
+            self.eligible_to_win = True
+            logging.info(f"{self.name} is out of chips but the board is forced because of them, so they can't win yet.")
+        else:
+            self.has_won = True
+            logging.info(f"{self.name} wins this round!")
 
     def add_chip(self, chip: Chip) -> None:
-        self.chips.add(chip)
-        logging.info("%s draws: %s" % (self.name, chip.__str__()))
+        raise NotImplemented
 
     def remove_chips(self, chips: Set[Chip]) -> None:
         raise NotImplementedError
 
     def can_play(self, board: Board) -> bool:
         if not self.chips:
-            logging.info("%s doesn't have chips, but it is their turn." % self.name)
+            logging.info(f"{self.name} doesn't have chips, but it is their turn.")
             return False
         return True
 
@@ -55,10 +53,10 @@ class Player:
         return NotImplemented
 
     def get_total_points(self) -> int:
-        return NotImplemented
+        return self.total_points
 
     def add_up_points(self) -> None:
-        pass
+        raise NotImplemented
 
     def get_name(self) -> str:
         return self.name
@@ -88,4 +86,7 @@ class Player:
         return NotImplemented
 
     def has_chips(self, chips) -> bool:
-        pass
+        return NotImplemented
+
+    def get_chips(self) -> Set[Chip]:
+        return NotImplemented

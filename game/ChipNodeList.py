@@ -8,9 +8,7 @@ from game import ChipNode, Chip
 class ChipNodeList:
 
     def __init__(self, chip_nodes: List[ChipNode] = None) -> None:
-        self.chip_nodes = chip_nodes
-        if not chip_nodes:
-            self.chip_nodes = []
+        self.chip_nodes = chip_nodes if chip_nodes else []
 
     def add(self, chip_node: ChipNode) -> None:
         if not chip_node:
@@ -20,10 +18,24 @@ class ChipNodeList:
     def get_best_chip_to_play(self) -> ChipNode:
         max_value = -math.inf
         best_chip_node = None
+
         for cn in self.chip_nodes:
             if cn.get_next_move_value() > max_value:
                 max_value = cn.get_next_move_value()
                 best_chip_node = cn
+
+        self.remove_node_keep_tail(best_chip_node)
+        return best_chip_node.get_next_move_as_node()
+
+    def get_best_numbered_chip_to_play(self, numbers: Set[int]) -> ChipNode:
+        max_value = -math.inf
+        best_chip_node = None
+
+        for cn in self.chip_nodes:
+            if cn.get_chip_side_to_play() in numbers and cn.get_next_move_value() > max_value:
+                max_value = cn.get_next_move_value()
+                best_chip_node = cn
+
         self.remove_node_keep_tail(best_chip_node)
         return best_chip_node.get_next_move_as_node()
 
@@ -33,19 +45,10 @@ class ChipNodeList:
                 return True
         return False
 
-    def get_best_numbered_chip_to_play(self, numbers: Set[int]) -> ChipNode:
-        max_value = -math.inf
-        best_chip_node = None
-        for cn in self.chip_nodes:
-            if cn.get_chip_side_to_play() in numbers and cn.get_next_move_value() > max_value:
-                max_value = cn.get_next_move_value()
-                best_chip_node = cn
-        self.remove_node_keep_tail(best_chip_node)
-        return best_chip_node.get_next_move_as_node()
-
     def get_all_chips(self) -> ChipNode:
         if len(self.chip_nodes) != 1:
             raise Exception("Can only play all chips if root is a single element.")
+
         chip_node = self.chip_nodes[0]
         self.chip_nodes = []
         return chip_node
@@ -58,7 +61,7 @@ class ChipNodeList:
         return chip_node
 
     def has_chip_to_play(self) -> bool:
-        return len(self.chip_nodes) > 0
+        return bool(self.chip_nodes)
 
     def remove_node_keep_tail(self, chip_node: ChipNode) -> None:
         removed = False
@@ -70,7 +73,7 @@ class ChipNodeList:
                 break
 
         if not removed:
-            logging.info("Trying to remove %s from %s." % (chip_node.__str__(), self.__str__()))
+            logging.info(f"trying to remove {chip_node} from {self}.")
             raise Exception("Can't remove non-present node.")
 
         tail = chip_node.get_tail()
@@ -99,7 +102,5 @@ class ChipNodeList:
         return len(self.get_chipset())
 
     def __str__(self) -> str:
-        s = []
-        for cn in self.chip_nodes:
-            s.append(cn.__str__())
-        return ''.join(s)
+        s = [str(cn) for cn in self.chip_nodes]
+        return "".join(s)
