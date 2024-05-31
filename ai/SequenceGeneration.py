@@ -7,6 +7,7 @@ from game import ChipFactory
 from game.Chip import Chip
 from game.ChipNode import ChipNode
 from game.ChipNodeList import ChipNodeList
+from game.RevealedChip import RevealedChip
 
 front_loaded_index = 0.9999
 
@@ -75,14 +76,14 @@ def generate_sequence_recursive(open_position: int, chips: Set[Chip], heuristic_
 
 
 def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, iterations: int = 10) -> None:
-    for i in range(5, max_hand_size):
+    for hand_size in range(5, max_hand_size):
         total_time = 0
         max_time = -math.inf
 
         for j in range(iterations):
-            pool = ChipFactory.create_chips(highest_double, human_game=False)
+            pool = ChipFactory.create_chips(highest_double)
             open_positions = [random.randrange(highest_double) for _ in range(random.randint(1, 4))]
-            chips = {pool.pop() for _ in range(i)}
+            chips = {pool.pop() for _ in range(hand_size)}
 
             start = time.time() * 1000
             generate_sequence(open_positions, chips, 12.55)
@@ -92,4 +93,10 @@ def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, 
             if run_time > max_time:
                 max_time = run_time
 
-        print(f"Average time to order {i} chips is: {total_time / iterations:.0f}ms. Max: {max_time:.0f}ms.")
+        print(f"Average time to order {hand_size} chips is: {total_time / iterations:.0f}ms. Max: {max_time:.0f}ms.")
+
+
+def test_sequence_generation():
+    numbers = [[5,5], [5,0], [0,1], [1,5], [1,2]]
+    chips = {RevealedChip(pair) for pair in numbers}
+    print(generate_sequence([5], chips))

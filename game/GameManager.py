@@ -11,15 +11,19 @@ from players.HeuristicCPUPlayer import HeuristicCPUPlayer
 from players.HumanPlayer import HumanPlayer
 from players.RandomCPUPlayer import RandomCPUPlayer
 from players.SmartCPUPlayer import SmartCPUPlayer
+from ui.Input import row_input
 
 
 class GameManager:
+    placeholder_names = ["Alice", "Bob", "Cindy", "Dan", "Emma", "Frank", "Gina", "Han", "Ivy", "Jane"]
+    chips_per_player = [12, 12, 12, 12, 12, 10, 9, 8, 8, 7, 7]
 
-    def __init__(self, chips_per_player: int, highest_double: int, initial_double: int, random_py: int, simple_py: int,
-                 heuristic_py: int, human_py: int, player_names: List[str] = None, starting_turn: int = -1) -> None:
+    def __init__(self, random_py: int, smart_py: int, heuristic_py: int, human_py: int,
+                 highest_double: int = 12, initial_double: int = 12, player_names: List[str] = None) -> None:
 
-        self.n_players = random_py + simple_py + heuristic_py + human_py
-        self.chips_per_player = chips_per_player
+        self.n_players = random_py + smart_py + heuristic_py + human_py
+        self.chips_per_player = self.chips_per_player[self.n_players]
+        self.round_direction = -1 if initial_double else 1
         self.endgame_countdown = self.n_players
         self.highest_double = highest_double
         self.current_double = initial_double
@@ -30,17 +34,21 @@ class GameManager:
         self.players = []
         self.board = None
 
-        self.turn = random.randrange(self.n_players) if starting_turn < 0 else starting_turn
-        self.player_names = player_names if player_names else [str(i) for i in range(self.n_players)]
+        self.player_names = player_names if player_names else self.placeholder_names[:self.n_players]
+        self.turn = row_input(player_names) if self.human_game else random.randrange(self.n_players)
 
+        # Init Players.
         for i in range(random_py):
-            self.players.append(RandomCPUPlayer(i, player_names[i]))
-        for i in range(len(self.players), len(self.players) + simple_py):
-            self.players.append(SmartCPUPlayer(i, player_names[i]))
+            self.players.append(RandomCPUPlayer(i, self.player_names[i]))
+
+        for i in range(len(self.players), len(self.players) + smart_py):
+            self.players.append(SmartCPUPlayer(i, self.player_names[i]))
+
         for i in range(len(self.players), len(self.players) + heuristic_py):
-            self.players.append(HeuristicCPUPlayer(i, player_names[i], highest_double, chips_per_player))
+            self.players.append(HeuristicCPUPlayer(i, self.player_names[i], highest_double, self.chips_per_player))
+
         for i in range(len(self.players), len(self.players) + human_py):
-            self.players.append(HumanPlayer(i, player_names[i]))
+            self.players.append(HumanPlayer(i, self.player_names[i]))
 
     def init_round(self) -> None:
         self.endgame = False
@@ -79,14 +87,14 @@ class GameManager:
                     if player.get_total_points() < round_winner.get_total_points():
                         round_winner = player
 
-        self.current_double -= 1
+        self.current_double += self.round_direction
         self.turn = round_winner.get_index()
 
     def has_next_round(self) -> bool:
-        return self.current_double >= 0
+        return self.current_double >= 0 if self.round_direction == -1 else self.current_double <= self.highest_double
 
     def has_next_turn(self) -> bool:
-        # Breaks stalemates where there are no more moves to make.
+        # Breaks stalemates when there are no more moves left to make.
         if not self.board.can_draw():
             self.endgame = True
             if self.endgame_countdown <= 0:
@@ -249,7 +257,7 @@ class GameManager:
         self.players[self.turn].add_chip(self.board.draw())
         # TODO: Notify players
 
-    def play_ai_game(self) -> List[int]:
+    def play_game(self) -> List[int]:
         start_time = time.time() * 1000
 
         while self.has_next_round():

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 
 from game.ChipNode import ChipNode
 from game.RevealedChip import RevealedChip
@@ -17,12 +17,24 @@ def boolean_input(prompt: str) -> bool:
             print("Expecting (T)rue or (F)alse")
 
 
-def number_input(prompt: str) -> int:
+def number_input(prompt: str, valid_options: List[int] = None) -> int:
     while True:
         try:
-            return int(input(prompt))
+            number = int(input(prompt))
+            if not valid_options or number in valid_options:
+                return number
+            raise ValueError
         except ValueError:
-            print("Invalid input. Expecting a number.")
+            if valid_options:
+                print(f"Invalid input. Expecting a choice between these numbers: {valid_options}")
+            else:
+                print("Expecting a number.")
+
+
+def row_input(player_names: List[str]) -> int:
+    row_prompt = [f"Row to play\n"]
+    row_prompt.extend(f"{i}: {name}" for i, name in enumerate(player_names))
+    return number_input("".join(row_prompt), list(range(len(player_names))))
 
 
 def chip_input(prompt: str, empty_allowed: bool = True) -> Optional[RevealedChip]:

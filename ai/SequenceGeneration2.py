@@ -1,45 +1,28 @@
+import math
+from typing import List, Set
+
 from game.Chip import Chip
-from game.ChipNode import ChipNode
+from game.ChipNodeList import ChipNodeList
+from game.RevealedChip import RevealedChip
 
 
-class SequenceGeneration2:
-
-    def __init__(self, chips):
-        self.vertices = dict()
-        for chip in chips:
-            for number in chip.get_sides():
-                self.vertices[number] = Vertex(number)
-
-        for v in self.vertices.values():
-            for chip in chips:
-                if v.get_number() in chip:
-                    v.add_neighbor(chip)
-
-    def find_longest_chain(self):
-        progress_made = True
-        while progress_made:
-            progress_made = False
-            for origin_vertex in self.vertices:
-                for neighbor_id in origin_vertex.get_neighbors():
-                    neighbor_vertex = self.vertices[neighbor_id]
-                    if neighbor_vertex.update_paths(origin_vertex.get_number(), origin_vertex.get_paths()):
-                        progress_made = True
+def generate_sequence(open_positions: List[int], chips: Set[Chip], heuristic_value_per_chip: float = 0, max_depth: int = math.inf) -> ChipNodeList:
+    sg2 = SequenceGeneration2(chips)
+    boundary = [sg2.nodes[i] for i in open_positions]
+    sg2.find_longest_chain(boundary)
+    return ChipNodeList()
 
 
-class Vertex:
+class Node:
 
     def __init__(self, number):
         self.neighbors = dict()
-        self.double_chip = None
         self.is_double = False
         self.number = number
-        self.paths = set()
 
     def add_neighbor(self, chip):
         if chip.is_double():
             self.is_double = True
-            self.double_chip = chip
-            return
 
         self.neighbors[chip.get_other_side(self.number)] = chip
 
@@ -49,21 +32,6 @@ class Vertex:
     def get_number(self):
         return self.number
 
-    def update_paths(self, origin_id, paths):
-        progress_made = False
-
-        for individual_path in paths:
-            cn = ChipNode(Chip(), self.number)
-            cn.add_next_node(individual_path.__copy__())
-            if cn not in self.paths:
-                self.paths.add(cn)
-                progress_made = True
-
-        return progress_made
-
-    def get_paths(self):
-        return self.paths
-
     def __eq__(self, other):
         return self.number == other.number
 
@@ -71,4 +39,43 @@ class Vertex:
         return hash(self.number)
 
     def __str__(self):
-        return f"Vertex number {self.number}"
+        return f"Node number {self.number}, neighbors {self.neighbors.keys()}"
+
+
+class SequenceGeneration2:
+
+    def __init__(self, chips):
+        self.nodes = dict()
+
+        for chip in chips:
+            for number in chip.get_sides():
+                if number not in self.nodes:
+                    self.nodes[number] = Node(number)
+
+                self.nodes[number].add_neighbor(chip)
+
+    def find_longest_chain(self, boundary: List[Node], used_chips: Set[Chip] = None) -> ChipNodeList:
+        if not used_chips:
+            used_chips = set()
+
+        for node in boundary:
+            for n, chip in node.neighbors.items():
+                if chip in used_chips:
+                    continue
+
+                new_boundary = boundary.copy()
+                new_boundary.remove(node)
+                new_boundary.append(self.nodes[chip.get_other_side(n)])
+
+                new_chips = used_chips.copy()
+                new_chips.add(chip)
+
+                self.find_longest_chain(new_boundary, new_chips)
+
+        return ChipNodeList()
+
+
+def test_sequence_generation():
+    numbers = [[5, 5], [5, 0], [0, 1], [1, 5], [1, 2]]
+    chips = {RevealedChip(pair) for pair in numbers}
+    print(generate_sequence([5], chips))

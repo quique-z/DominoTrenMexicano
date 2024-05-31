@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import List, Self, Set
 
 
 class Chip:
@@ -11,7 +11,7 @@ class Chip:
     def get_side_b(self) -> int:
         return NotImplemented
 
-    def get_sides(self) -> List[int]:
+    def get_sides(self) -> Set[int]:
         return NotImplemented
 
     def get_other_side(self, n: int) -> int:

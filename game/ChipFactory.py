@@ -6,7 +6,7 @@ from game.HiddenChip import HiddenChip
 from game.RevealedChip import RevealedChip
 
 
-def create_chips(highest_double: int, human_game: bool, double_to_skip: int = -1) -> List[Chip]:
+def create_chips(highest_double: int, human_game: bool = False, double_to_skip: int = -1) -> List[Chip]:
     return create_hidden_chips(highest_double, double_to_skip) if human_game else create_revealed_chips(highest_double, double_to_skip)
 
 

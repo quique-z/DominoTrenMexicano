@@ -1,4 +1,4 @@
-from typing import List, Self
+from typing import List, Self, Set
 
 from game.Chip import Chip
 
@@ -23,15 +23,15 @@ class RevealedChip(Chip):
     def get_side_b(self) -> int:
         return self.numbers[1]
 
-    def get_sides(self) -> List[int]:
-        return [self.get_side_a()] if self.is_double() else self.numbers
+    def get_sides(self) -> Set[int]:
+        return set(self.numbers)
 
-    def get_other_side(self, n: int) -> int:
-        if self.get_side_a() == n:
+    def get_other_side(self, side: int) -> int:
+        if self.get_side_a() == side:
             return self.get_side_b()
-        if self.get_side_b() == n:
+        if self.get_side_b() == side:
             return self.get_side_a()
-        raise Exception(f"this chip does not contain number {n}")
+        raise Exception(f"this chip does not contain number {side}")
 
     def is_double(self) -> bool:
         return self.get_side_a() == self.get_side_b()

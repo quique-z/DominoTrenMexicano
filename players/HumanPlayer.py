@@ -5,7 +5,7 @@ from game.Board import Board
 from game.Chip import Chip
 from game.PlayableChipNode import PlayableChipNode
 from players.Player import Player
-from ui.Input import boolean_input, number_input, chip_node_input
+from ui.Input import boolean_input, number_input, chip_node_input, row_input
 
 
 class HumanPlayer(Player):
@@ -42,12 +42,8 @@ class HumanPlayer(Player):
         return set()
 
     def play(self, board: Board, players: List[Player]) -> PlayableChipNode:
-        row_prompt = [f"Row to play\n"]
-        row_prompt.extend(f"{player.get_index()}: {player.get_name()}" for player in players)
-        row = number_input("".join(row_prompt))
-
-        open_position = number_input("Open position to play chips on.")
-
+        row = row_input([player.get_name() for player in players])
+        open_position = number_input("Open position to play chips on.", board.get_row(row).get_open_positions())
         chip_node = chip_node_input(open_position, empty_allowed=False)
         return PlayableChipNode(chip_node, row)
 
