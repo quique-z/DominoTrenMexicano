@@ -9,8 +9,8 @@ from ui.Input import chip_input
 
 
 class CPUPlayer(Player):
-    def __init__(self, index: int, name: str = None) -> None:
-        super().__init__(index, name)
+    def __init__(self, index: int, highest_double: int, n_players: int, name: str = None) -> None:
+        super().__init__(index, highest_double, n_players, name)
         self.say_one = True
         self.remove_train = True
 
@@ -34,10 +34,7 @@ class CPUPlayer(Player):
 
     def can_play_forced(self, board: Board) -> bool:
         can_play = self.can_play_numbers(board.get_forced_numbers())
-        if can_play:
-            logging.info(f"{self.name} is forced and has a chip to play")
-        else:
-            logging.info(f"{self.name} is forced and does not have a chip to play")
+        logging.info(f"{self.name} is forced and {'has' if can_play else 'does not have'} a chip to play")
         return can_play
 
     def can_play_any(self, board: Board) -> bool:
@@ -50,18 +47,11 @@ class CPUPlayer(Player):
         return self.can_play_numbers(numbers)
 
     def can_play_numbers(self, numbers: Set[int]) -> bool:
-        available_numbers = set()
-
-        for chip in self.chips:
-            available_numbers.update(chip.get_sides())
-
+        available_numbers = {side for chip in self.chips for side in chip.get_sides()}
         return bool(numbers & available_numbers)
 
     def get_current_points(self) -> int:
-        total = 0
-        for chip in self.chips:
-            total += chip.get_value()
-        return total
+        return sum(chip.get_value() for chip in self.chips)
 
     def add_up_points(self) -> None:
         self.total_points += self.get_current_points()
@@ -73,10 +63,7 @@ class CPUPlayer(Player):
         return self.remove_train
 
     def has_chips(self, chips: List[Chip]) -> bool:
-        for chip in chips:
-            if chip not in self.chips:
-                return False
-        return True
+        return all(chip in self.chips for chip in chips)
 
     def get_chips(self) -> Set[Chip]:
         return self.chips

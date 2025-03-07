@@ -7,7 +7,7 @@ from game import Chip, Board, PlayableChipNode
 
 class Player:
 
-    def __init__(self, index: int, name: str = None) -> None:
+    def __init__(self, index: int, highest_double: int, n_players: int, name: str = None) -> None:
         self.name = name if name else str(index)
         self.eligible_to_win = False
         self.total_points = 0

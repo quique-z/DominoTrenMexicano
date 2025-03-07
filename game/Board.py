@@ -20,11 +20,11 @@ class Board:
     def play_playable_chip_node(self, playable_chip_node: PlayableChipNode) -> None:
         self.rows[playable_chip_node.get_row()].play_chip_node(playable_chip_node.get_chip_node())
 
-    def set_forced(self, row: int, numbers: Set[int], culprit: int) -> None:
+    def set_forced(self, row: int, numbers: Set[int], culprit_id: int) -> None:
         self.forced = True
         self.forced_row = row
-        self.set_train(culprit)
-        self.forced_culprit = culprit
+        self.set_train(culprit_id)
+        self.forced_culprit = culprit_id
         self.forced_numbers.update(numbers)
 
     def remove_forced(self, number: int) -> None:

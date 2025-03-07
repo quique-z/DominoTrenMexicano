@@ -1,4 +1,4 @@
-from typing import List, Self, Set
+from typing import Self, Set
 
 
 class Chip:

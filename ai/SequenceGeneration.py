@@ -96,7 +96,7 @@ def time_sequence_generation(max_hand_size: int = 26, highest_double: int = 12, 
         print(f"Average time to order {hand_size} chips is: {total_time / iterations:.0f}ms. Max: {max_time:.0f}ms.")
 
 
-def test_sequence_generation():
+def test_sequence_generation() -> None:
     numbers = [[5,5], [5,0], [0,1], [1,5], [1,2]]
     chips = {RevealedChip(pair) for pair in numbers}
     print(generate_sequence([5], chips))

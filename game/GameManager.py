@@ -33,29 +33,33 @@ class GameManager:
         self.endgame = False
         self.players = []
         self.board = None
+        self.turn = 0
 
+
+        self.turn_offset = row_input(player_names) if self.human_game else random.randrange(self.n_players)
         self.player_names = player_names if player_names else self.placeholder_names[:self.n_players]
-        self.turn = row_input(player_names) if self.human_game else random.randrange(self.n_players)
 
         # Init Players.
         for i in range(random_py):
-            self.players.append(RandomCPUPlayer(i, self.player_names[i]))
+            self.players.append(RandomCPUPlayer(i, self.highest_double, self.n_players, self.player_names[i]))
 
         for i in range(len(self.players), len(self.players) + smart_py):
-            self.players.append(SmartCPUPlayer(i, self.player_names[i]))
+            self.players.append(SmartCPUPlayer(i, self.highest_double, self.n_players, self.player_names[i]))
 
         for i in range(len(self.players), len(self.players) + heuristic_py):
-            self.players.append(HeuristicCPUPlayer(i, self.player_names[i], highest_double, self.chips_per_player))
+            self.players.append(HeuristicCPUPlayer(i, self.highest_double, self.n_players, self.player_names[i]))
 
         for i in range(len(self.players), len(self.players) + human_py):
-            self.players.append(HumanPlayer(i, self.player_names[i]))
+            self.players.append(HumanPlayer(i, self.highest_double, self.n_players, self.player_names[i]))
+
 
     def init_round(self) -> None:
+        self.turn = 0
         self.endgame = False
         self.seen_chips = set()
         self.endgame_countdown = self.n_players
 
-        chips = create_chips(self.highest_double, self.human_game, self.current_double)
+        chips = create_chips(self.highest_double, self.current_double, self.human_game)
 
         for player in self.players:
             starting_chips = {chips.pop() for _ in range(self.chips_per_player)}
@@ -88,7 +92,7 @@ class GameManager:
                         round_winner = player
 
         self.current_double += self.round_direction
-        self.turn = round_winner.get_index()
+        self.turn_offset = round_winner.get_index()
 
     def has_next_round(self) -> bool:
         return self.current_double >= 0 if self.round_direction == -1 else self.current_double <= self.highest_double
@@ -110,7 +114,7 @@ class GameManager:
         return not self.players[self.previous_player_id()].is_round_winner()
 
     def next_turn(self) -> None:
-        active_player = self.players[self.turn]
+        active_player = self.players[self.current_player_id()]
         active_player.init_turn(self.board)
 
         can_play = active_player.can_play(self.board)
@@ -128,7 +132,7 @@ class GameManager:
         else:
             # TODO: Notify other players of missing numbers
             self.validate_pass()
-            self.board.set_train(self.turn)
+            self.board.set_train(self.current_player_id())
             if self.endgame:
                 self.endgame_countdown -= 1
 
@@ -137,10 +141,10 @@ class GameManager:
             self.draw_chip()
 
         active_player.end_turn(self.board)
-        self.turn = self.next_player_id()
+        self.turn += 1
 
     def play(self) -> None:
-        active_player = self.players[self.turn]
+        active_player = self.players[self.current_player_id()]
         logging.info(f"{active_player.get_name()} plays: ")
         playable_chip_node = active_player.play(self.board, self.players)
         self.validate_play(playable_chip_node)
@@ -149,11 +153,11 @@ class GameManager:
             self.handle_unresolved_doubles(playable_chip_node)
 
     def handle_unresolved_doubles(self, playable_chip_node: PlayableChipNode) -> None:
-        active_player = self.players[self.turn]
+        active_player = self.players[self.current_player_id()]
         logging.info(f"{active_player.get_name()} ends in double.")
         row = playable_chip_node.get_row()
         forced_numbers = playable_chip_node.get_chip_node().get_ending_doubles()
-        self.board.set_forced(row, forced_numbers, self.turn)
+        self.board.set_forced(row, forced_numbers, self.current_player_id())
 
         if self.board.can_draw():
             self.draw_chip()
@@ -166,7 +170,7 @@ class GameManager:
             logging.info("Did not draw necessary number.")
 
     def make_move(self, playable_chip_node: PlayableChipNode) -> None:
-        active_player = self.players[self.turn]
+        active_player = self.players[self.current_player_id()]
         logging.info(f"{active_player.get_name()} plays: {playable_chip_node}")
 
         # Remove forced.
@@ -174,8 +178,11 @@ class GameManager:
             self.board.remove_forced(playable_chip_node.get_chip_node().get_chip_side_to_play())
 
         # Remove train.
-        if self.turn == playable_chip_node.get_row and not playable_chip_node.ends_in_double() and not self.board.is_forced() and active_player.will_remove_train():
-            self.board.remove_train(self.turn)
+        if (self.current_player_id() == playable_chip_node.get_row
+                and not playable_chip_node.ends_in_double()
+                and not self.board.is_forced()
+                and active_player.will_remove_train()):
+            self.board.remove_train(self.current_player_id())
 
         # Play chips.
         active_player.remove_chips(playable_chip_node.get_chip_node().get_chipset())
@@ -187,7 +194,7 @@ class GameManager:
 
         if not chip_node:
             raise Exception("Empty move.")
-        if not self.players[self.turn].has_chips(chip_node.get_chipset()):
+        if not self.players[self.current_player_id()].has_chips(chip_node.get_chipset()):
             logging.info(playable_chip_node)
             raise Exception("Player tried to play a chip they do not have.")
         if chip_node.get_chipset() & self.seen_chips:
@@ -210,14 +217,14 @@ class GameManager:
         if chip_node.get_chip_side_to_play() not in self.board.get_row(row).get_open_positions():
             logging.info(playable_chip_node)
             raise Exception("Player tried to play a chip that does not match the numbers in the row.")
-        if row != self.turn and self.board.get_row(self.turn).has_train():
+        if row != self.current_player_id() and self.board.get_row(self.current_player_id()).has_train():
             logging.info(playable_chip_node)
             raise Exception("Player tried to play elsewhere, but has train and is not forced.")
-        if row != self.turn and not self.board.get_row(row).has_train():
+        if row != self.current_player_id() and not self.board.get_row(row).has_train():
             logging.info(playable_chip_node)
             raise Exception("Player tried to play in a row without train.")
         if len(chip_node) > 1:
-            if row == self.turn and self.board.get_row(self.turn).can_play_many():
+            if row == self.current_player_id() and self.board.get_row(self.current_player_id()).can_play_many():
                 pass
             elif len(chip_node) == 2 and chip_node.is_chip_double():
                 pass
@@ -226,35 +233,39 @@ class GameManager:
                 raise Exception("trying to play too many chips.")
         elif chip_node.is_chip_double():
             double = chip_node.get_chip()
-            for chip in self.players[self.turn].chips:
+            for chip in self.players[self.current_player_id()].chips:
                 if double.get_side_a() in chip and chip != double:
                     logging.info(str(playable_chip_node))
                     raise Exception("Player played a double but withheld from resolving it.")
 
     def validate_pass(self) -> None:
-        player_numbers = {number for chip in self.players[self.turn].get_chips() for number in chip.get_sides()}
+        player_numbers = {number for chip in self.players[self.current_player_id()].get_chips() for number in chip.get_sides()}
 
         if self.board.is_forced:
             open_positions = self.board.get_forced_numbers()
         else:
             open_positions = set()
             for row in self.board.get_rows():
-                if row.get_index() == self.turn or row.has_train() and not self.board.get_row(self.turn).has_train():
-                    for chip in self.players[self.turn].get_chips():
+                if (row.get_index() == self.current_player_id() or row.has_train()
+                        and not self.board.get_row(self.current_player_id()).has_train()):
+                    for chip in self.players[self.current_player_id()].get_chips():
                         open_positions.update(chip.get_sides())
 
         if player_numbers & open_positions:
             raise Exception(f"Player has numbers to play: {player_numbers & open_positions} but did not play them.")
 
     def previous_player_id(self) -> int:
-        return (self.turn - 1) % self.n_players
+        return (self.turn + self.turn_offset - 1) % self.n_players
 
     def next_player_id(self) -> int:
-        return (self.turn + 1) % self.n_players
+        return (self.turn + self.turn_offset + 1) % self.n_players
+
+    def current_player_id(self) -> int:
+        return (self.turn + self.turn_offset) % self.n_players
 
     def draw_chip(self) -> None:
-        logging.info(f"{self.players[self.turn].get_name()} draws chip.")
-        self.players[self.turn].add_chip(self.board.draw())
+        logging.info(f"{self.players[self.current_player_id()].get_name()} draws chip.")
+        self.players[self.current_player_id()].add_chip(self.board.draw())
         # TODO: Notify players
 
     def play_game(self) -> List[int]:
@@ -278,7 +289,7 @@ class GameManager:
         s = [f"the board looks like this:\n{self.board} \nPlayers: "]
         s.extend(f"\n{str(player)}" for player in self.players)
 
-        s.append(f"\nPlayer's turn: {self.players[self.turn].get_name()}")
+        s.append(f"\nPlayer's turn: {self.players[self.current_player_id()].get_name()}")
 
         s.append("Player(s) in the lead: ")
         s.extend(f"\n{player.get_name()}" for player in self.global_winner)

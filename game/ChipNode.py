@@ -1,11 +1,11 @@
 from typing import Self, List, Optional, Set
 
-from game.Chip import Chip
+from game.RevealedChip import RevealedChip
 
 
 class ChipNode:
 
-    def __init__(self, chip: Chip, side_to_play: int, heuristic_value_per_chip: float = 0) -> None:
+    def __init__(self, chip: RevealedChip, side_to_play: int, heuristic_value_per_chip: float = 0) -> None:
         self.next = None
         self.next2 = None
         self.chip = chip
@@ -41,7 +41,7 @@ class ChipNode:
                 next_value += self.next.get_next_move_value()
         return next_value
 
-    def get_next_move_as_chip_list(self) -> List[Chip]:
+    def get_next_move_as_chip_list(self) -> List[RevealedChip]:
         next_chip = [self.chip]
         if self.is_chip_double() and self.next:
             if self.next2 and self.next2.get_next_move_value() > self.next.get_next_move_value():
@@ -95,10 +95,10 @@ class ChipNode:
         if bool(self.next) ^ bool(self.next2):  # Single tail one side
             return self.next.get_last() if self.next else self.next2.get_last()
 
-        # Two next"s, keep lower value one.
+        # Two next's, keep lower value one.
         return self.next.get_last() if self.next.get_last_value() < self.next2.get_last_value() else self.next2.get_last()
 
-    def remove_chip_from_tail(self, chip: Chip) -> None:
+    def remove_chip_from_tail(self, chip: RevealedChip) -> None:
         if self.next and chip in self.next.get_chipset():
             if self.next.get_chip() == chip:
                 self.next = None
@@ -118,10 +118,10 @@ class ChipNode:
     def get_chip_side_to_play(self) -> int:
         return self.side_to_play
 
-    def get_chip(self) -> Chip:
+    def get_chip(self) -> RevealedChip:
         return self.chip
 
-    def get_chipset(self) -> Set[Chip]:
+    def get_chipset(self) -> Set[RevealedChip]:
         chipset = {self.chip}
         if self.next:
             chipset.update(self.next.get_chipset())

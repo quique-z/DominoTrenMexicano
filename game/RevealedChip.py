@@ -31,7 +31,8 @@ class RevealedChip(Chip):
             return self.get_side_b()
         if self.get_side_b() == side:
             return self.get_side_a()
-        raise Exception(f"this chip does not contain number {side}")
+
+        raise Exception(f"This chip does not contain number {side}")
 
     def is_double(self) -> bool:
         return self.get_side_a() == self.get_side_b()

@@ -19,8 +19,8 @@ class SmartCPUPlayer(CPUPlayer):
     heuristic_value_per_chip = 7
     danger_threshold = 2
 
-    def __init__(self, index, name=None):
-        super().__init__(index, name)
+    def __init__(self, index: int, highest_double: int, n_players: int, name: str = None) -> None:
+        super().__init__(index, highest_double, n_players, name)
         self.needs_to_update_sequence = True
         self.chip_node_list = None
 
@@ -36,10 +36,14 @@ class SmartCPUPlayer(CPUPlayer):
         self.needs_to_update_sequence = False
         self.chip_node_list = generate_sequence(board.get_row(self.index).get_open_positions(), self.chips, self.heuristic_value_per_chip, max_depth)
 
+    def other_players_min_chip_count(self, players: List[Player]) -> int:
+        return min(player.get_chip_count() for player in players if player.get_index != self.get_index())
+
     def play(self, board: Board, players: List[Player]) -> PlayableChipNode:
         if self.needs_to_update_sequence or board.has_train(self.index):
             logging.info(f"{self.name} is updating sequence")
             self.update_sequence(board)
+
         if board.is_forced():
             logging.info(f"{self.name} is forced")
             return self.play_forced(board)
@@ -48,7 +52,7 @@ class SmartCPUPlayer(CPUPlayer):
             return self.play_first(play_all=True)
         if self.danger_of_other_players_winning(players):
             logging.info(f"{self.name} is playing many points quickly")
-            return self.play_many_points_quickly(board, other_players_min_chip_count(players))
+            return self.play_many_points_quickly(board, self.other_players_min_chip_count(players))
         if self.can_play_cheaply_elsewhere(board):
             logging.info(f"{self.name} is playing elsewhere")
             return self.play_cheaply_elsewhere(board)
@@ -64,12 +68,9 @@ class SmartCPUPlayer(CPUPlayer):
         return self.play_cheaply_elsewhere(board)
 
     def play_forced(self, board: Board) -> PlayableChipNode:
-        if board.get_forced_row_index() == self.index:
-            logging.info(f"{self.name} playing forced self")
-            return self.play_forced_self(board)
-        else:
-            logging.info(f"{self.name} playing forced elsewhere")
-            return self.play_forced_elsewhere(board)
+        forced_self = board.get_forced_row_index() == self.index
+        logging.info(f"{self.name} playing forced {'self' if forced_self else 'elsewhere'}")
+        return self.play_forced_self(board) if forced_self else self.play_forced_elsewhere(board)
 
     # TODO: Test with sequence.get_chipset_weighted_value()
     def play_forced_self(self, board: Board) -> PlayableChipNode:
@@ -168,21 +169,13 @@ class SmartCPUPlayer(CPUPlayer):
             return PlayableChipNode(self.chip_node_list.get_all_chips_minus_last(), self.index)
 
     def can_play_self(self, board):
-        for position in board.get_row(self.index).get_open_positions():
-            for chip in self.chips:
-                if position in chip:
-                    return True
-        return False
+        return any(position in chip for position in board.get_row(self.index).get_open_positions() for chip in self.chips)
 
     def play_self(self) -> PlayableChipNode:
-        chip_node = self.chip_node_list.get_best_chip_to_play()
-        return PlayableChipNode(chip_node, self.index)
+        return PlayableChipNode(self.chip_node_list.get_best_chip_to_play(), self.index)
 
     def danger_of_other_players_winning(self, players: List[Player]) -> bool:
-        for player in players:
-            if player.get_chip_count() <= self.danger_threshold:
-                return True
-        return False
+        return any(player.get_chip_count() <= self.danger_threshold for player in players)
 
     def play_many_points_quickly(self, board: Board, min_chip_count: int) -> PlayableChipNode:
         best_value = 0
@@ -367,14 +360,8 @@ class SmartCPUPlayer(CPUPlayer):
                                 best_value = current_value
                                 best_row = row.get_index()
                                 best_chip_node = current_chip_node
+
         if not best_chip_node:
             raise Exception(f"Player {self.name} did not find a chip to play despite having one.")
+
         return PlayableChipNode(best_chip_node, best_row)
-
-
-def other_players_min_chip_count(players: List[Player]) -> int:
-    min_chip_count = math.inf
-    for player in players:
-        if player.get_chip_count() < min_chip_count:
-            min_chip_count = player.get_chip_count()
-    return min_chip_count

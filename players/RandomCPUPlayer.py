@@ -5,9 +5,9 @@ from typing import List, Self, Optional
 from numpy.random import permutation
 
 from game import Board
-from game.Chip import Chip
 from game.ChipNode import ChipNode
 from game.PlayableChipNode import PlayableChipNode
+from game.RevealedChip import RevealedChip
 from players.CPUPlayer import CPUPlayer
 
 
@@ -39,9 +39,10 @@ class RandomCPUPlayer(CPUPlayer):
 
                             return PlayableChipNode(cn, row.get_index())
 
-    def follow_up_double(self, original_chip: Chip, open_number: int) -> Optional[Chip]:
+    def follow_up_double(self, original_chip: RevealedChip, open_number: int) -> Optional[RevealedChip]:
         for new_chip in permutation(list(self.chips)):
             if open_number in new_chip and original_chip != new_chip:
-                logging.info(f"{self.name} follows the double with: {new_chip}")
+                logging.info(f"{self.name} follows the double with: {new_chip}.")
                 return new_chip
+        logging.info(f"{self.name} does not have chip to follow up.")
         return None
