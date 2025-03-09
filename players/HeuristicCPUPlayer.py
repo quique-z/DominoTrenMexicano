@@ -16,7 +16,7 @@ class HeuristicCPUPlayer(SmartCPUPlayer):
 
     def init_round(self, chips: Set[Chip] = None, double_to_skip: int = None) -> None:
         super().init_round(chips, double_to_skip)
-        self.probability_tracker = ProbabilityTracker(self.highest_double, double_to_skip, self.n_players, self.index)
+        self.probability_tracker = ProbabilityTracker(chips, self.highest_double, double_to_skip, self.n_players, self.index)
 
     def init_turn(self, board):
         super().init_turn(board)
@@ -27,5 +27,5 @@ class HeuristicCPUPlayer(SmartCPUPlayer):
         super().add_chip(chip)
 
     def __str__(self):
-        s = [str(super()), str(self.probability_tracker)]
+        s = [super().__str__(), str(self.probability_tracker)]
         return "".join(s)

@@ -1,5 +1,6 @@
 from typing import List, Set
 
+from ai.TurnLog import TurnLog
 from game import Chip, PlayableChipNode
 from game.Row import Row
 
@@ -13,6 +14,7 @@ class Board:
         self.forced_numbers = set()
         self.n_players = n_players
         self.forced_culprit = -1
+        self.turn_history = []
         self.draw_pile = chips
         self.forced_row = -1
         self.forced = False
@@ -33,6 +35,22 @@ class Board:
             self.forced = False
             self.forced_row = -1
             self.forced_culprit = -1
+
+    def get_available_numbers_for_player(self, player_id: int) -> Set[int]:
+        if self.is_forced():
+            return self.forced_numbers
+
+        if self.rows[player_id].has_train():
+            return set(self.rows[player_id].get_open_positions())
+
+        available_numbers = set()
+        for row in self.rows:
+            if row.has_train() or row.get_index() == player_id:
+                available_numbers.update(row.get_open_positions())
+        return available_numbers
+
+    def update_turn_history(self, new_turn_history: TurnLog) -> None:
+        self.turn_history.append(new_turn_history)
 
     def is_forced(self) -> bool:
         return self.forced
@@ -69,6 +87,9 @@ class Board:
 
     def get_number_of_players(self) -> int:
         return self.n_players
+
+    def get_turn_history(self) -> List[TurnLog]:
+        return self.turn_history
 
     def __str__(self) -> str:
         s = [f"Center double: {self.center_double} \n"

@@ -7,11 +7,13 @@ from game.RevealedChip import RevealedChip
 
 class ProbabilityTracker:
 
-    def __init__(self, highest_double: int, double_to_skip: int, n_players: int, owner_id: int) -> None:
+    def __init__(self, seen_chips: Set[RevealedChip], highest_double: int, double_to_skip: int, n_players: int, owner_id: int) -> None:
         self.draw_pile_id = owner_id
         self.n_players = n_players
 
-        self.unseen_chips = set(ChipFactory.create_chips(highest_double, double_to_skip))
+        self.seen_chips = seen_chips
+        self.unseen_chips = set(ChipFactory.create_chips(highest_double, double_to_skip)) - seen_chips
+
         players_chips = [set() for _ in range(n_players)]
         players_chips[self.draw_pile_id] = self.unseen_chips
 
@@ -58,3 +60,7 @@ class ProbabilityTracker:
             if universe.does_n_player_have_x_numbers(player_id, numbers):
                 total += 1
         return total / len(self.possible_universes)
+
+    def __str__(self) -> str:
+        output = [f"Possible universes: {len(self.possible_universes)}"]
+        return "".join(output)
